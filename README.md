@@ -1,7 +1,7 @@
 # 一款基于FFmpeg封装的移动端播放器，支持Android/鸿蒙/iOS
 
 
-<img src="https://github.com/liaohailong123/HelloPlayer/blob/master/assets/Screenrecorder-2025-02-07-14-09-15-263.gif" alt="科学上网 或 Github 加速器" width="224px">
+<img src="https://github.com/liaohailong123/HelloPlayer/blob/main/assets/Screenrecorder-2025-02-07-14-09-15-263.gif?raw=true" alt="科学上网 或 Github 加速器" width="224px">
 
 
 ## 先运行 python init.py 初始化工作，然后再进入 platform 对应平台运行示例工程
@@ -100,7 +100,7 @@
 ## 类图
 
 
-![1](https://github.com/liaohailong123/HelloPlayer/blob/master/assets/HelloPlayer.svg)
+![1](https://raw.githubusercontent.com/liaohailong123/HelloPlayer/1a77eb61ce71fcfe9f6c83ecd360e5a52989b023/assets/HelloPlayer.svg?token=AFAWH3XDXAONYFWUNS4WOIDH5QDBG)
 
 
 
