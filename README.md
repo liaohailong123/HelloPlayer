@@ -66,7 +66,7 @@
 		播放进度回调
 		缓冲区时长回调
 
-## 示例代码
+## 示例代码 Android
 
 ```xml
 <com.example.module_rtsp.HelloPlayerView
@@ -94,6 +94,62 @@
     playerView.setPlayerConfig(config);
     playerView.setDataSource("Your uri");
     playerView.prepare(startOffsetUs); // 准备,可设置起播时间
+```
+
+## 示例代码 Ohos 鸿蒙
+
+```arkts
+	import { HelloPlayerView } from 'helloplayer/src/main/ets/player/HelloPlayerView';
+	import { HelloPlayerViewController } from 'helloplayer/src/main/ets/player/HelloPlayerView';
+
+	@Entry
+	@Component
+	struct Index {
+		// use controller to play url
+		// eg: this.controller.play(url, false) // 1st=url, 2nd=useHardware
+  		private controller: HelloPlayerViewController = new HelloPlayerViewController()
+
+  		build() {
+    		Column() {
+
+      			HelloPlayerView({
+        			viewController: this.controller
+      			}).width('100%')
+
+    		}.height("100%")
+    		.margin({ left: 10, right: 10 })
+  		}	
+	}
+
+```
+
+## 示例代码 iOS
+
+```objective-c
+	#import <helloplayer/HelloPlayerView.h>
+
+- (void)viewDidLoad {
+    self.playerView = [[HelloPlayerView alloc] init];
+    self.playerView.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.view addSubview:self.playerView];
+}
+
+// UIButton clicked to play local mp4 file
+- (void) onPrepareSoft {
+    NSURL *url = [[NSBundle mainBundle] URLForResource:@"Sync-One2_Test_1080p_23.98_H.264_AAC_5.1" withExtension:@"mp4"];
+    NSString *filepath = [url absoluteString];
+	[self.playerView setSpeed:1.0];
+    [self.playerView setDataSource:filepath autoPlay:true useHardware:false];
+}
+
+// UIButton clicked to play av1 video
+- (void) onPrepareSoft2 {
+    NSURL *url = [[NSBundle mainBundle] URLForResource:@"output_av1" withExtension:@"mp4"];
+    NSString *filepath = [url absoluteString];
+    [self.playerView setSpeed:1.0];
+    [self.playerView setDataSource:filepath autoPlay:true useHardware:false];
+}
+
 ```
 
 
