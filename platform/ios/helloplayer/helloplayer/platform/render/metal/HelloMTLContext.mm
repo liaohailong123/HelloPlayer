@@ -43,19 +43,20 @@ bool HelloMTLContext::init()
     return true;
 }
 
-bool HelloMTLContext::addSurface(MTKView *surface)
+bool HelloMTLContext::addSurface(void *surface)
 {
-    CGSize size = surface.frame.size;
+    CAMetalLayer *layer = (__bridge CAMetalLayer*)surface;
+    CGSize size = layer.frame.size;
     int width = size.width;
     int height = size.height;
     
     uint64_t key = reinterpret_cast<uint64_t>(surface);
     std::shared_ptr<MetalLayerCtx> ctx(new MetalLayerCtx());
     ctx->key = key;
-    ctx->metalLayer = surface;
+    ctx->metalLayer = layer;
     ctx->width = width;
     ctx->height = height;
-    surface.device = device;
+    layer.device = device;
     
     auto find = metalLayers.find(key);
     if (find == metalLayers.end()) {
@@ -67,7 +68,7 @@ bool HelloMTLContext::addSurface(MTKView *surface)
     return true;
 }
 
-bool HelloMTLContext::removeSurface(MTKView *surface)
+bool HelloMTLContext::removeSurface(void *surface)
 {
     uint64_t key = reinterpret_cast<uint64_t>(surface);
     logger.i("removeSurface [%llu]", key);
@@ -142,12 +143,16 @@ id<MTLCommandBuffer> HelloMTLContext::renderStart(uint64_t key)
     auto findLayer = metalLayers.find(key);
     if (findLayer == metalLayers.end())return nil;
     
-    MTKView *metalLayer = findLayer->second->metalLayer;
+    std::shared_ptr<MetalLayerCtx> ctx = findLayer->second;
     
     // 首先清除一次 color buffer
     if (renderPassDescriptor) {
+        // metalLayer.currentDrawable 每调用一次,需要 [buffer presentDrawable:currentDrawable]; 一次消费掉
+        if (ctx->currentDrawable == nil) {
+            ctx->currentDrawable = ctx->metalLayer.nextDrawable;
+        }
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(red, green, blue, alpha);
-        renderPassDescriptor.colorAttachments[0].texture = metalLayer.currentDrawable.texture;
+        renderPassDescriptor.colorAttachments[0].texture = ctx->currentDrawable.texture;
     } else {
         logger.i("MTLPipeline::setClearColor renderPassDescriptor is null?");
         return nil;
@@ -177,9 +182,10 @@ bool HelloMTLContext::renderEnd(uint64_t key)
     auto findLayer = metalLayers.find(key);
     if (findLayer == metalLayers.end())return false;
     
-    MTKView *metalLayer = findLayer->second->metalLayer;
-    if (metalLayer) {
-        commit(commandBuffer, metalLayer.currentDrawable);
+    std::shared_ptr<MetalLayerCtx> ctx = findLayer->second;
+    if (ctx->currentDrawable) {
+        commit(commandBuffer, ctx->currentDrawable);
+        ctx->currentDrawable = nil;
     }
     commandBuffer = nil;
     

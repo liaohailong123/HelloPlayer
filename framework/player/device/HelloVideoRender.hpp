@@ -6,6 +6,7 @@
 #define HELLOPLAYER_HELLOVIDEORENDER_HPP
 
 #include "HelloVideoFrame.hpp"
+#include "../../player/entity/PlayConfig.hpp"
 #include "../../log/Logger.hpp"
 
 #include <memory>
@@ -24,7 +25,16 @@ extern "C"
 class HelloVideoRender
 {
 public:
-    explicit HelloVideoRender(const char *tag, AVPixelFormat format);
+    /**
+     * 播放渲染上下文,全写基本类型,内部不要有指针类型对象
+     */
+    typedef struct
+    {
+        AVPixelFormat format;
+        PlayConfig config;
+    } VideoRenderCtx;
+public:
+    explicit HelloVideoRender(const char *tag);
 
     virtual ~HelloVideoRender();
 

@@ -21,6 +21,7 @@ MTLTexture2Layer::~MTLTexture2Layer()
 
 void MTLTexture2Layer::onProcess(std::shared_ptr<MTLFilterPacket> packet)
 {
+//    int64_t startMs = TimeUtil::getCurrentTimeMs();
     if (!packet->texture) {
         logger.e("MTLTexture2Layer::onProcess input texture is nil?");
         return;
@@ -32,16 +33,19 @@ void MTLTexture2Layer::onProcess(std::shared_ptr<MTLFilterPacket> packet)
         logger.i("MTLTexture2Layer::onProcess cannot found layerCtx?");
         return;
     }
-    id<CAMetalDrawable> drawable = layerCtx->metalLayer.currentDrawable;
+    
+    id<CAMetalDrawable> drawable = layerCtx->currentDrawable;
     if (!drawable) {
         logger.i("MTLTexture2Layer::onProcess drawable is nil?");
         return;
     }
+    
     id<MTLTexture> target = drawable.texture;
     if (!target) {
         logger.i("MTLTexture2Layer::onProcess drawable.texture is nil?");
         return;
     }
+
     // 配置CAMetalLayer的纹理,接下来绘制内容就能上屏了
     pipeline->setRenderTarget(target);
     
@@ -57,5 +61,8 @@ void MTLTexture2Layer::onProcess(std::shared_ptr<MTLFilterPacket> packet)
     
     // 渲染管线结束绘制,结束 command encoder
     pipeline->end();
+    
+//    int64_t costMs = TimeUtil::getCurrentTimeMs() - startMs;
+//    logger.i("MTLTexture2Layer::onProcess cost[%d]ms", costMs);
     
 }

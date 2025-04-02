@@ -62,13 +62,13 @@ void I420Pipeline::setTextureData(const std::shared_ptr<MTLTextureData> &image)
     }
     
     if (!textureY) {
-        textureY = PipelineUtil::genrateTexure2D(ctx, yWidth, yHeight);
+        textureY = PipelineUtil::genrateTexure2D(ctx, yWidth, yHeight, MTLPixelFormatR8Unorm);
     }
     if (!textureU) {
-        textureU = PipelineUtil::genrateTexure2D(ctx, uvWidth, uvHeight);
+        textureU = PipelineUtil::genrateTexure2D(ctx, uvWidth, uvHeight, MTLPixelFormatR8Unorm);
     }
     if (!textureV) {
-        textureV = PipelineUtil::genrateTexure2D(ctx, uvWidth, uvHeight);
+        textureV = PipelineUtil::genrateTexure2D(ctx, uvWidth, uvHeight, MTLPixelFormatR8Unorm);
     }
     
     // 硬件解码,返回的buffer可能是一个正方形
@@ -127,9 +127,9 @@ bool I420Pipeline::draw(float projectMat[4*4])
     [encoder setFragmentTexture:textureV atIndex:AAPLTextureInputIndexColor2];
 
     // Draw quad with rendered texture.
-    [encoder drawPrimitives:MTLPrimitiveTypeTriangle
+    [encoder drawPrimitives:MTLPrimitiveTypeTriangleStrip
                       vertexStart:0
-                      vertexCount:6];
+                      vertexCount:4];
     
     return true;
 }

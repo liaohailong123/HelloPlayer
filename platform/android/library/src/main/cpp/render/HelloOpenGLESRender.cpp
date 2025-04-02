@@ -6,7 +6,7 @@
 
 
 HelloOpenGLESRender::HelloOpenGLESRender(AVPixelFormat _format) :
-        HelloVideoRender("HelloOpenGLESRender", _format), prjMat4(), format(_format),
+        HelloVideoRender("HelloOpenGLESRender"), prjMat4(), format(_format),
         prepared(false), glContext(nullptr), filterPacket(nullptr), filterChain(new GLFilterChain())
 {
     // 创建EGL环境

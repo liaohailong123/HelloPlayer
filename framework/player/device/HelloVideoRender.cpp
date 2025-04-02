@@ -4,7 +4,7 @@
 
 #include "HelloVideoRender.hpp"
 
-HelloVideoRender::HelloVideoRender(const char *tag, AVPixelFormat format) : logger(tag)
+HelloVideoRender::HelloVideoRender(const char *tag) : logger(tag)
 {
     logger.i("HelloVideoRender::HelloVideoRender(%p)", this);
 }

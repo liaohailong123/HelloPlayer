@@ -119,112 +119,32 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "A636CB92-9C18-4984-A235-D5E997F0322E"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "helloplayer/helloplayer/platform/render/metal/filter/impl/MTLInput2Sampler2d.mm"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "24"
-            endingLineNumber = "24"
-            landmarkName = "MTLInput2Sampler2d::updateAVPixelFormat(f)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "57671D48-D662-410E-B867-1C8FF44BFBB0"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "helloplayer/helloplayer/platform/render/metal/filter/impl/MTLInput2Sampler2d.mm"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "64"
-            endingLineNumber = "64"
-            landmarkName = "MTLInput2Sampler2d::onProcess(packet)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "F46A3713-31E9-496F-B1C2-EADAA9470BB3"
+            uuid = "472FD7EA-E1CB-4D31-81A4-AD79E96DB480"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "../../framework/player/device/HelloAVDecoderFFmpeg.cpp"
+            filePath = "helloplayer/helloplayer/platform/render/metal/pipeline/NV12Pipeline.mm"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "200"
-            endingLineNumber = "200"
-            landmarkName = "HelloAVDecoderFFmpeg::sendPacket(packet)"
+            startingLineNumber = "78"
+            endingLineNumber = "78"
+            landmarkName = "NV12Pipeline::draw(projectMat)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "015253CD-0293-45E8-9CD5-B638C1D4C583"
-            shouldBeEnabled = "Yes"
+            uuid = "65151205-C47F-4550-90B6-27C0DA18D19E"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "helloplayer/helloplayer/platform/render/metal/pipeline/MTLPipeline.mm"
+            filePath = "helloplayer/helloplayer/platform/render/HelloAudioUnitRender.mm"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "26"
-            endingLineNumber = "26"
-            landmarkName = "MTLPipeline::initialized(_ctx)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "859F07ED-EFE5-4D07-B0D5-D704CBD65B2F"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "helloplayer/helloplayer/platform/render/metal/HelloMetalRender.mm"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "71"
-            endingLineNumber = "71"
-            landmarkName = "HelloMetalRender::onMetalCreated()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "4C0EBAD4-938A-4811-BF9A-3E4ABC69E585"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "helloplayer/helloplayer/platform/render/metal/HelloMetalRender.mm"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "30"
-            endingLineNumber = "30"
-            landmarkName = "HelloMetalRender::prepare()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "A3CF2C85-D4AF-4AA9-85F7-1896E58711EB"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "helloplayer/helloplayer/platform/render/metal/HelloMetalRender.mm"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "62"
-            endingLineNumber = "62"
-            landmarkName = "HelloMetalRender::initProjectMat4()"
+            startingLineNumber = "207"
+            endingLineNumber = "207"
+            landmarkName = "HelloAudioUnitRender::onAudioPlayCallbackFunc(inRefCon, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, ioData)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

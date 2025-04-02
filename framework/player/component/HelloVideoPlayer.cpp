@@ -33,9 +33,10 @@ HelloVideoPlayer::~HelloVideoPlayer()
     logger.i("HelloVideoPlayer::~HelloVideoPlayer(%p)", this);
 }
 
-void HelloVideoPlayer::prepare(const std::shared_ptr<VideoProperties> &p, PlayConfig *config)
+void HelloVideoPlayer::prepare(const std::shared_ptr<VideoProperties> &p, PlayConfig _config)
 {
     this->properties = p;
+    this->config = _config;
 
     if (handler)
     {
@@ -58,7 +59,12 @@ void HelloVideoPlayer::initRender(void *userdata)
         native->logger.i("render is already exist");
     } else
     {
-        native->render = HelloDeviceRegister::onCreateHelloVideoRender(format);
+        // 视频渲染的配置信息
+        HelloVideoRender::VideoRenderCtx ctx = {
+                .format = format, // 像素格式
+                .config = native->config // 图形Api
+        };
+        native->render = HelloDeviceRegister::onCreateHelloVideoRender(ctx);
     }
     native->logger.i("create render success");
 
@@ -279,10 +285,11 @@ void HelloVideoPlayer::draw(std::shared_ptr<IAVFrame> &frame)
 //        {
 //            save_yuv420p(frame->frame, yuvFile);
 //        }
-        int64_t startMs = TimeUtil::getCurrentTimeMs();
+        
+//        int64_t startMs = TimeUtil::getCurrentTimeMs();
         render->draw(image);
-        int64_t costMs = TimeUtil::getCurrentTimeMs() - startMs;
-        logger.i("native->draw(frame) cost[%d]ms", costMs);
+//        int64_t costMs = TimeUtil::getCurrentTimeMs() - startMs;
+//        logger.i("native->draw(frame) cost[%d]ms", costMs);
         lastFrame = image;
     }
 }

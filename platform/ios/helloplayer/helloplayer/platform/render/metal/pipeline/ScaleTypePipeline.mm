@@ -71,9 +71,9 @@ bool ScaleTypePipeline::draw(float projectMat[4*4])
     [encoder setFragmentTexture:texture atIndex:AAPLTextureInputIndexColor0];
 
     // Draw quad with rendered texture.
-    [encoder drawPrimitives:MTLPrimitiveTypeTriangle
+    [encoder drawPrimitives:MTLPrimitiveTypeTriangleStrip
                       vertexStart:0
-                      vertexCount:6];
+                      vertexCount:4];
     
     return true;
 }

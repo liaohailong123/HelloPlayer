@@ -53,16 +53,16 @@ void NV12Pipeline::setTextureData(const std::shared_ptr<MTLTextureData> &image)
 
     
     if (!textureY) {
-        textureY = PipelineUtil::genrateTexure2D(ctx, yWidth, yHeight);
+        textureY = PipelineUtil::genrateTexure2D(ctx, yWidth, yHeight, MTLPixelFormatR8Unorm);
     }
     if (!textureUV) {
-        textureUV = PipelineUtil::genrateTexure2D(ctx, uvWidth, uvHeight);
+        textureUV = PipelineUtil::genrateTexure2D(ctx, uvWidth, uvHeight, MTLPixelFormatRG8Unorm);
     }
 
     
     // 硬件解码,返回的buffer可能是一个正方形
     uint32_t _lineSizeY = lineSize[0];
-    uint32_t _lineSizeUV = lineSize[0] / 2;
+    uint32_t _lineSizeUV = lineSize[0];
     // 把YUV数据分别填充到 textureY textureU textureV 上
     // **填充 Metal 纹理**
     MTLRegion regionY = MTLRegionMake2D(0, 0, yWidth, yHeight);
@@ -112,9 +112,9 @@ bool NV12Pipeline::draw(float projectMat[4*4])
     [encoder setFragmentTexture:textureUV atIndex:AAPLTextureInputIndexColor1];
 
     // Draw quad with rendered texture.
-    [encoder drawPrimitives:MTLPrimitiveTypeTriangle
+    [encoder drawPrimitives:MTLPrimitiveTypeTriangleStrip
                       vertexStart:0
-                      vertexCount:6];
+                      vertexCount:4];
     
     return true;
 }

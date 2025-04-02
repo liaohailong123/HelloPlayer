@@ -15,9 +15,7 @@
 		C71830BD2D917EDE00766E8D /* HelloiOSCallbackCtx.hpp in Headers */ = {isa = PBXBuildFile; fileRef = C71830A52D917EDE00766E8D /* HelloiOSCallbackCtx.hpp */; };
 		C71830BE2D917EDE00766E8D /* HelloPlayerError.h in Headers */ = {isa = PBXBuildFile; fileRef = C71830A82D917EDE00766E8D /* HelloPlayerError.h */; };
 		C71830BF2D917EDE00766E8D /* HelloPlayerView.h in Headers */ = {isa = PBXBuildFile; fileRef = C71830B52D917EDE00766E8D /* HelloPlayerView.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		C71830C02D917EDE00766E8D /* HelloOpenGLESRender.hpp in Headers */ = {isa = PBXBuildFile; fileRef = C71830AF2D917EDE00766E8D /* HelloOpenGLESRender.hpp */; };
 		C71830C12D917EDE00766E8D /* HelloAudioUnitRender.mm in Sources */ = {isa = PBXBuildFile; fileRef = C71830AC2D917EDE00766E8D /* HelloAudioUnitRender.mm */; };
-		C71830C22D917EDE00766E8D /* HelloOpenGLESRender.mm in Sources */ = {isa = PBXBuildFile; fileRef = C71830B02D917EDE00766E8D /* HelloOpenGLESRender.mm */; };
 		C71830C32D917EDE00766E8D /* helloplayer.mm in Sources */ = {isa = PBXBuildFile; fileRef = C71830B42D917EDE00766E8D /* helloplayer.mm */; };
 		C71830C42D917EDE00766E8D /* HelloEAGLContext.mm in Sources */ = {isa = PBXBuildFile; fileRef = C71830AE2D917EDE00766E8D /* HelloEAGLContext.mm */; };
 		C71830C52D917EDE00766E8D /* HelloPlayerView.mm in Sources */ = {isa = PBXBuildFile; fileRef = C71830B62D917EDE00766E8D /* HelloPlayerView.mm */; };
@@ -599,8 +597,6 @@
 		C71830AC2D917EDE00766E8D /* HelloAudioUnitRender.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = HelloAudioUnitRender.mm; sourceTree = "<group>"; };
 		C71830AD2D917EDE00766E8D /* HelloEAGLContext.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = HelloEAGLContext.hpp; sourceTree = "<group>"; };
 		C71830AE2D917EDE00766E8D /* HelloEAGLContext.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = HelloEAGLContext.mm; sourceTree = "<group>"; };
-		C71830AF2D917EDE00766E8D /* HelloOpenGLESRender.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = HelloOpenGLESRender.hpp; sourceTree = "<group>"; };
-		C71830B02D917EDE00766E8D /* HelloOpenGLESRender.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = HelloOpenGLESRender.mm; sourceTree = "<group>"; };
 		C71830B32D917EDE00766E8D /* helloplayer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = helloplayer.h; sourceTree = "<group>"; };
 		C71830B42D917EDE00766E8D /* helloplayer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = helloplayer.mm; sourceTree = "<group>"; };
 		C71830B52D917EDE00766E8D /* HelloPlayerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HelloPlayerView.h; sourceTree = "<group>"; };
@@ -1163,6 +1159,11 @@
 			path = metal;
 			sourceTree = "<group>";
 		};
+		C7D921702D9D3371004B2E4C /* opengl */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = opengl;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1199,13 +1200,12 @@
 		C71830B12D917EDE00766E8D /* render */ = {
 			isa = PBXGroup;
 			children = (
+				C7D921702D9D3371004B2E4C /* opengl */,
 				C77860C22D9909BA00B08C0C /* metal */,
 				C71830AB2D917EDE00766E8D /* HelloAudioUnitRender.hpp */,
 				C71830AC2D917EDE00766E8D /* HelloAudioUnitRender.mm */,
 				C71830AD2D917EDE00766E8D /* HelloEAGLContext.hpp */,
 				C71830AE2D917EDE00766E8D /* HelloEAGLContext.mm */,
-				C71830AF2D917EDE00766E8D /* HelloOpenGLESRender.hpp */,
-				C71830B02D917EDE00766E8D /* HelloOpenGLESRender.mm */,
 			);
 			path = render;
 			sourceTree = "<group>";
@@ -2342,7 +2342,6 @@
 				C71834662D917F0200766E8D /* type_mat3x3.hpp in Headers */,
 				C71830BE2D917EDE00766E8D /* HelloPlayerError.h in Headers */,
 				C71830BF2D917EDE00766E8D /* HelloPlayerView.h in Headers */,
-				C71830C02D917EDE00766E8D /* HelloOpenGLESRender.hpp in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2365,6 +2364,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				C77860C22D9909BA00B08C0C /* metal */,
+				C7D921702D9D3371004B2E4C /* opengl */,
 			);
 			name = helloplayer;
 			packageProductDependencies = (
@@ -2564,7 +2564,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				C71830C12D917EDE00766E8D /* HelloAudioUnitRender.mm in Sources */,
-				C71830C22D917EDE00766E8D /* HelloOpenGLESRender.mm in Sources */,
 				C71830C32D917EDE00766E8D /* helloplayer.mm in Sources */,
 				C71830C42D917EDE00766E8D /* HelloEAGLContext.mm in Sources */,
 				C71834672D917F0200766E8D /* HelloAudioRender.cpp in Sources */,
@@ -2651,7 +2650,7 @@
 				INFOPLIST_KEY_MetalCaptureEnabled = NO;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2691,7 +2690,7 @@
 				INFOPLIST_KEY_MetalCaptureEnabled = NO;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

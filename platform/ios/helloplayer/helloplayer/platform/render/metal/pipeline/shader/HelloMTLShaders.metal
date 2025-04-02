@@ -106,7 +106,7 @@ fragment float4 i420FragmentShader(TexturePipelineRasterizerData in      [[stage
     float b = y + 1.772 * u;
     
 
-    return float4(b,g,r,1.0);
+    return float4(r,g,b,1.0);
 }
 
 
@@ -144,5 +144,5 @@ fragment float4 nv12FragmentShader(TexturePipelineRasterizerData in      [[stage
     float b = y + 1.772 * u;
     
 
-    return float4(b,g,r,1.0);
+    return float4(r,g,b,1.0);
 }

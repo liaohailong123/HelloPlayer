@@ -17,17 +17,16 @@
  */
 class HelloDeviceRegister
 {
-
 public:
     /**
      * @return 音视频解码器
      */
     static std::shared_ptr<HelloAVDecoderCore> onCreateHelloAVDecoderCore();
     /**
-     * @param format 像素格式
+     * @param ctx 渲染配置上下文
      * @return 平台侧视频渲染器
      */
-    static std::shared_ptr<HelloVideoRender> onCreateHelloVideoRender(AVPixelFormat format);
+    static std::shared_ptr<HelloVideoRender> onCreateHelloVideoRender(const HelloVideoRender::VideoRenderCtx &ctx);
     /**
      * @return 平台侧音频渲染器
      */

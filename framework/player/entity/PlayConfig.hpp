@@ -7,11 +7,16 @@
 
 #include <cstdint>
 
+typedef enum
+{
+    OPENGL_ES,
+    METAL
+} RenderApi;
 
 /**
  * create by liaohailong
  * 2025/1/11 10:28
- * desc: 播放配置
+ * desc: 播放配置,这里全写基本类型,不要存指针对象!
  */
 struct PlayConfig
 {
@@ -54,6 +59,11 @@ struct PlayConfig
      * IO连接(网络IO,文件IO)超时,默认15s
      */
     long ioTimeoutUs = 1000 * 1000 * 15;
+
+    /**
+     * 图形API类型,默认采用 OpenGL ES
+     */
+    RenderApi renderApi = OPENGL_ES;
 };
 
 

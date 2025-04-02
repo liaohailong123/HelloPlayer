@@ -23,12 +23,12 @@ std::shared_ptr<HelloAVDecoderCore> HelloDeviceRegister::onCreateHelloAVDecoderC
 }
 
 /**
- * @param format 像素格式
+ * @param ctx 渲染配置上下文
  * @return Android平台侧实现的视频渲染器
  */
-std::shared_ptr<HelloVideoRender> HelloDeviceRegister::onCreateHelloVideoRender(AVPixelFormat format)
+std::shared_ptr<HelloVideoRender> HelloDeviceRegister::onCreateHelloVideoRender(const HelloVideoRender::VideoRenderCtx &ctx)
 {
-    return std::make_shared<HelloOpenGLESRender>(format);
+    return std::make_shared<HelloOpenGLESRender>(ctx.format);
 }
 
 /**

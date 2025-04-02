@@ -28,7 +28,7 @@
 namespace PipelineUtil
 {
     id<MTLTexture> genrateTexure2D(std::shared_ptr<HelloMTLContext> ctx,int width, int height,
-                                 MTLPixelFormat pixelFormat = MTLPixelFormatRGBA8Unorm, int rotation = -1);
+                                 MTLPixelFormat pixelFormat = MTLPixelFormatBGRA8Unorm, int rotation = -1);
 }
 
 

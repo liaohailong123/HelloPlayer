@@ -54,7 +54,7 @@ void MTLPipeline::initialized(const std::shared_ptr<HelloMTLContext> &_ctx)
     pipelineDescriptor.label                           = @"MTLPipeline";
     pipelineDescriptor.vertexFunction                  = vertexProgram;
     pipelineDescriptor.fragmentFunction                = fragmentProgram;
-    pipelineDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormatRGBA8Unorm; // 统一渲染格式都是BGRA
+    pipelineDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm; // 统一渲染格式都是BGRA
 
     NSError *error;
     pipelineState = [ctx->device newRenderPipelineStateWithDescriptor:pipelineDescriptor

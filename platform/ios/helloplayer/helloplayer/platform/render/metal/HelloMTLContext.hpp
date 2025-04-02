@@ -27,9 +27,13 @@ public:
          */
         uint64_t key;
         /**
+         * Metal组件,里面有CAMetalLayer
+         */
+        CAMetalLayer *metalLayer;
+        /**
          * Metal渲染缓冲区
          */
-        MTKView *metalLayer;
+        id <CAMetalDrawable> currentDrawable;
         /**
          * layer width
          */
@@ -46,9 +50,9 @@ public:
     
     bool init();
     
-    bool addSurface(MTKView *surface);
+    bool addSurface(void *surface);
     
-    bool removeSurface(MTKView *surface);
+    bool removeSurface(void *surface);
     
     int getSurfaceSize();
     

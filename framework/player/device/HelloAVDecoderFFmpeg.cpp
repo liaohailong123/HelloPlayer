@@ -192,18 +192,16 @@ std::shared_ptr<VideoProperties> HelloAVDecoderFFmpeg::getVideoProperties()
  */
 int HelloAVDecoderFFmpeg::sendPacket(std::shared_ptr<IAVPacket> packet)
 {
-    AVMediaType codec_type = stream->codecpar->codec_type;
 
-    
     if (codec_ctx != nullptr)
     {
         int ret = avcodec_send_packet(codec_ctx, packet->packet);
         if (ret < 0)
         {
-            if (AVMEDIA_TYPE_VIDEO == codec_type)
+            if (IAVMediaType::VIDEO == packet->type)
             {
                 FFUtil::av_print_error(logger, ret, "avcodec_send_packet[video] error");
-            } else if(AVMEDIA_TYPE_AUDIO == codec_type)
+            } else if(IAVMediaType::AUDIO == packet->type)
             {
                 FFUtil::av_print_error(logger, ret, "avcodec_send_packet[audio] error");
             }

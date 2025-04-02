@@ -37,7 +37,7 @@ std::shared_ptr<AudioProperties> HelloAudioUnitRender::setConfig(std::shared_ptr
     support->sampleFmt = p->sampleFmt;
     support->frame_size = p->frame_size;
     
-    formatFlags = kLinearPCMFormatFlagIsSignedInteger;
+    formatFlags = kLinearPCMFormatFlagIsSignedInteger|kAudioFormatFlagIsPacked;
     if (p->sampleFmt == AVSampleFormat::AV_SAMPLE_FMT_S16 ||
         p->sampleFmt == AVSampleFormat::AV_SAMPLE_FMT_S16P)
     {
@@ -55,7 +55,7 @@ std::shared_ptr<AudioProperties> HelloAudioUnitRender::setConfig(std::shared_ptr
               p->sampleFmt == AVSampleFormat::AV_SAMPLE_FMT_FLTP)
     {
         bitsPerChannel = 32;
-        formatFlags = kLinearPCMFormatFlagIsFloat;
+        formatFlags = kLinearPCMFormatFlagIsFloat|kAudioFormatFlagIsPacked;
         support->sampleFmt = AVSampleFormat::AV_SAMPLE_FMT_FLT;
         logger.i("sampleFmt: AudioFormat::Float");
     } else
@@ -64,8 +64,15 @@ std::shared_ptr<AudioProperties> HelloAudioUnitRender::setConfig(std::shared_ptr
         support->sampleFmt = AVSampleFormat::AV_SAMPLE_FMT_S16;
         logger.i("sampleFmt(default): AUDIOSTREAM_SAMPLE_S16LE");
     }
-    sampleRate = p->sampleRate;
-    channelsPerFrame = p->channelCount;
+    
+    // 测试发现: iPad mini(第5代) + iPhone 16 Pro 模拟器不支持 6声道
+    // 暂时先全部转换成 双声道
+    if (p->channelCount > 2) {
+        support->channelCount = 2;
+    }
+    
+    sampleRate = support->sampleRate;
+    channelsPerFrame = support->channelCount;
     bytePerSample = bitsPerChannel/8;
     bytesPerFrame = bytePerSample * channelsPerFrame;
     
@@ -81,8 +88,16 @@ void HelloAudioUnitRender::setAudioSession()
     // set audio session
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     [audioSession setCategory:AVAudioSessionCategoryPlayback error:&error];
+    [audioSession setPreferredOutputNumberOfChannels:channelsPerFrame error:&error];
+    [audioSession setActive:YES error:&error];
     
-    logger.i("setAudioSession start");
+    if(error)
+    {
+        const char *msg = [error.localizedDescription UTF8String];
+        logger.i("setAudioSession error: %s", msg);
+    }
+    NSInteger channels = audioSession.outputNumberOfChannels;
+    logger.i("setAudioSession start channelsPerFrame[%d] channels[%d]", channelsPerFrame, channels);
 }
 
 void HelloAudioUnitRender::setIOUnit()

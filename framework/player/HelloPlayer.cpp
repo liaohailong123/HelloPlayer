@@ -334,7 +334,7 @@ bool HelloPlayer::openSource()
 
                 // 初始化视频播放器
                 std::shared_ptr<VideoProperties> p = videoDecoder->getVideoProperties();
-                videoPlayer->prepare(p, &playConfig);
+                videoPlayer->prepare(p, playConfig);
                 // 尝试添加输出surface，用户可能设置的早，存起来了
                 if (pendingSurface)
                 {

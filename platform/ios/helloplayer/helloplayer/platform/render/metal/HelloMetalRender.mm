@@ -8,7 +8,7 @@
 #include "HelloMetalRender.hpp"
 
 
-HelloMetalRender::HelloMetalRender(AVPixelFormat format): HelloVideoRender("HelloMetalRender", format),prjMat4(), format(format),prepared(false),mtlContext(nullptr),filterPacket(nullptr), filterChain(new MTLFilterChain())
+HelloMetalRender::HelloMetalRender(AVPixelFormat format): HelloVideoRender("HelloMetalRender"),prjMat4(), format(format),prepared(false),mtlContext(nullptr),filterPacket(nullptr), filterChain(new MTLFilterChain())
 {
     mtlContext = std::make_shared<HelloMTLContext>();
     mtlContext->init();
@@ -127,8 +127,7 @@ bool HelloMetalRender::addOutputs(void *surface)
 {
     if (mtlContext)
     {
-        MTKView *layer = (__bridge MTKView*)surface;
-        return mtlContext->addSurface(layer);
+        return mtlContext->addSurface(surface);
     }
     return false;
 }
@@ -140,8 +139,7 @@ void HelloMetalRender::removeOutputs(void *surface)
 {
     if (mtlContext)
     {
-        MTKView *layer = (__bridge MTKView*)surface;
-        mtlContext->removeSurface(layer);
+        mtlContext->removeSurface(surface);
     }
 }
 
@@ -155,7 +153,7 @@ void HelloMetalRender::removeOutputs(void *surface)
  */
 bool HelloMetalRender::clearColor(float r, float g, float b, float a)
 {
-    if (!mtlContext || prepared) {
+    if (!mtlContext || !prepared) {
         return false;
     }
     
@@ -179,7 +177,7 @@ bool HelloMetalRender::clearColor(float r, float g, float b, float a)
  */
 bool HelloMetalRender::draw(std::shared_ptr<HelloVideoFrame> frame)
 {
-    if (!mtlContext || prepared) {
+    if (!mtlContext || !prepared) {
         return false;
     }
     

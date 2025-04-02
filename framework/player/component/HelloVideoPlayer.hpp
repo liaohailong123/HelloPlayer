@@ -88,7 +88,7 @@ public:
 
     void removeSurface(void *surface);
 
-    void prepare(const std::shared_ptr<VideoProperties> &properties, PlayConfig *config);
+    void prepare(const std::shared_ptr<VideoProperties> &properties, PlayConfig config);
 
     inline bool isPrepared() const noexcept
     {
@@ -120,6 +120,11 @@ private:
      * 视频基本信息
      */
     std::shared_ptr<VideoProperties> properties;
+
+    /**
+     * 播放配置属性
+     */
+    PlayConfig config;
 
     /**
      * 绘制 YUV420 或 YUV422 格式画面

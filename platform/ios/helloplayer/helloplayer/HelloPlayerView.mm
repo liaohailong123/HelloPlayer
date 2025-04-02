@@ -9,6 +9,7 @@
 @property (nonatomic) int64_t durationUs;
 
 @property(strong, nonatomic) CAEAGLLayer *glLayer;
+@property(strong, nonatomic) MTKView *mtkView;
 @property (nonatomic, strong) UIButton *playPauseButton;
 @property (nonatomic, strong) UISlider *progressSlider;
 @property (nonatomic, assign) BOOL isSliding;
@@ -21,13 +22,14 @@
 - (instancetype)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        [self setupPlayer];
-        [self setupUI];
+        BOOL useMetal = YES; // 图形Api开关
+        [self setupPlayer: useMetal];
+        [self setupUI: useMetal];
     }
     return self;
 }
 
-- (void)setupPlayer {
+- (void)setupPlayer:(bool)useMetal {
     self.ctx = new HelloiOSCallbackCtx();
     self.player = new HelloPlayer(self.ctx);
     
@@ -36,7 +38,13 @@
     self.ctx->onPrepared = [](const Hello::MediaInfo &info, void* userdata)->void {
         HelloPlayerView *native = (__bridge HelloPlayerView*)userdata;
         native->_durationUs = info.masterClockType == 0 ? info.audioDurationUs : info.videoDurationUs;
-        native->_player->addSurface((__bridge_retained void*)native->_glLayer);
+        // 外部会穿参来控制 使用 OpenGLES 还是 Metal
+        if (native->_glLayer) {
+            native->_player->addSurface((__bridge_retained void*)native->_glLayer);
+        } else if(native->_mtkView) {
+            CAMetalLayer *layer = (CAMetalLayer *)[native->_mtkView layer];
+            native->_player->addSurface((__bridge_retained void*)layer);
+        }
     };
     self.ctx->onPlayStateChanged = [](PlayState from, PlayState to, void* userdata)->void {
         HelloPlayerView *native = (__bridge HelloPlayerView*)userdata;
@@ -63,6 +71,7 @@
     config.speed = 1.0;
     config.volume = 1.0;
     config.useHardware = false;
+    config.renderApi = useMetal ? RenderApi::METAL : RenderApi::OPENGL_ES;
     self.config = config;
 }
 
@@ -85,12 +94,22 @@
     }
 }
 
-- (void)setupUI {
-    self.glLayer = [CAEAGLLayer layer];
-    self.glLayer.contentsScale = [UIScreen mainScreen].scale;
-    self.glLayer.opaque = YES;
-    self.glLayer.backgroundColor = [UIColor blackColor].CGColor;
-    [self.layer addSublayer:self.glLayer]; // 先添加 glLayer
+- (void)setupUI: (bool)useMetal {
+    
+    // 设置黑色背景
+    self.backgroundColor = [UIColor blackColor];
+    
+    if (useMetal) {
+        self.mtkView = [[MTKView alloc] initWithFrame:self.bounds device:MTLCreateSystemDefaultDevice()];
+        self.mtkView.clearColor = MTLClearColorMake(0, 0, 0, 1);
+        [self addSubview:self.mtkView];
+    } else {
+        self.glLayer = [CAEAGLLayer layer];
+        self.glLayer.contentsScale = [UIScreen mainScreen].scale;
+        self.glLayer.opaque = YES;
+        self.glLayer.backgroundColor = [UIColor blackColor].CGColor;
+        [self.layer addSublayer:self.glLayer]; // 先添加 glLayer
+    }
     
     // 播放/暂停按钮
     _playPauseButton = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -138,7 +157,12 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     // 更新 glLayer 大小
-    self.glLayer.frame = self.bounds;
+    if (self.glLayer) {
+        self.glLayer.frame = self.bounds;
+    }
+    if (self.mtkView) {
+        self.mtkView.frame = self.bounds;
+    }
 }
 
 - (UIImage *)createThumbImageWithSize:(CGSize)size color:(UIColor *)color {
