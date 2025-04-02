@@ -100,7 +100,7 @@
 ## 类图
 
 
-![1](https://raw.githubusercontent.com/liaohailong123/HelloPlayer/1a77eb61ce71fcfe9f6c83ecd360e5a52989b023/assets/HelloPlayer.svg?token=AFAWH3XDXAONYFWUNS4WOIDH5QDBG)
+![1](https://gitee.com/liaohailong190/hello-player/raw/master/assets/HelloPlayer.svg)
 
 
 
