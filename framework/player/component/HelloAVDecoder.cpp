@@ -6,7 +6,8 @@
 
 
 HelloAVDecoder::HelloAVDecoder(const char *tag, std::shared_ptr<HelloAVSync> avSync)
-        : HelloProcessor(tag), prepared(false), mutex(), config(),
+        : HelloProcessor(tag), prepared(false), onBeforeDecodeCallbackCtx(nullptr), mutex(),
+          config(),
           pkt_timebase(), codec_type(AVMEDIA_TYPE_UNKNOWN), decoder(nullptr), bsf_ctx(nullptr),
           avSync(std::move(avSync)), type(IAVMediaType::UNKNOWN), serial(0)
 {
@@ -72,15 +73,21 @@ void HelloAVDecoder::prepare(AVStream *stream, PlayConfig _config)
     }
 
     // 初始化 bsf 对 H.26X 系列视频编码处理
-    if (decoder->needAnnexB()) 
+    if (decoder->needAnnexB())
     {
         initBsf(stream);
     }
-    
+
     // 注册回调函数，接收解码好的视频帧
     decoder->setReceiveFrameCallback(onReceiveFrameCallback, this);
 
     logger.i("prepared success");
+}
+
+
+void HelloAVDecoder::setOnDecodeCallbackCtx(const std::shared_ptr<OnDecodeCallbackCtx> &ctx)
+{
+    this->onBeforeDecodeCallbackCtx = ctx;
 }
 
 /**
@@ -133,7 +140,7 @@ bool HelloAVDecoder::onProcess(std::shared_ptr<InputDataCtx> inputData)
     // 媒体类型
     const char *mediaDesc = av_get_media_type_string(codec_type);
 
-    logger.i("decoder[%s] onProcess start", mediaDesc);
+//    logger.i("decoder[%s] onProcess start", mediaDesc);
 
     HelloClock &masterClock = avSync->getMasterClock();
     std::shared_ptr<IAVPacket> &data = inputData->data;
@@ -173,35 +180,54 @@ bool HelloAVDecoder::onProcess(std::shared_ptr<InputDataCtx> inputData)
         return true;
     }
 
-    logger.i("decoder[%s] sendPacket pts[%d]ms serial[%d]",
-             mediaDesc, data->getPtsUs() / 1000, data->serial);
+//    logger.i("decoder[%s] sendPacket pts[%d]ms serial[%d]",
+//             mediaDesc, data->getPtsUs() / 1000, data->serial);
 
-    // 保存下来，后面回调接口有用到 onReceiveFrameCallback
+    // 判断一下是否需要延迟送解，主要是兼容一些低内存设备，防止内存爆了
+    if (onBeforeDecodeCallbackCtx && onBeforeDecodeCallbackCtx->callback)
+    {
+        bool ret = onBeforeDecodeCallbackCtx->callback(data, onBeforeDecodeCallbackCtx->userdata);
+        if (ret)
+        {
+            int64_t durationUs = data->getDurationUs();
+            auto delayUs = int64_t(double(durationUs)/ masterClock.speed);
+//            logger.i("Decoder[%s] delay [%d]ms to send packet",
+//                     data->getMediaTypeDesc(), delayUs / 1000);
+            callMeLater(delayUs);
+            return false;
+        }
+    }
+
+    // 保存下来，后面回调接口(onReceiveFrameCallback)有用到
     this->type = data->type;
     this->serial = data->serial;
     int64_t ptsUs = data->getPtsUs();
-    IAVMediaType type = data->type;
 
     int ret = 0;
     // MP4 模式 -> AnnexB 模式
-    if (bsf_ctx) {
+    if (bsf_ctx)
+    {
         ret = av_bsf_send_packet(bsf_ctx, data->packet);
-        if (ret < 0) {
+        if (ret < 0)
+        {
             FFUtil::av_print_error(logger, ret, "av_bsf_send_packet error");
             return true;
         }
-        while (true) {
+        while (true)
+        {
             std::shared_ptr<IAVPacket> copy = std::make_shared<IAVPacket>();
-            copy->type = type;
+            copy->type = this->type;
             copy->serial = serial;
             ret = av_bsf_receive_packet(bsf_ctx, copy->packet);
-            if (ret != 0) {
+            if (ret != 0)
+            {
                 break;
             }
             // 这里必须做到send一次，receive多次，因为这个packet没法去保存，如果send不进去的话
-            ret = decoder->sendPacket(copy);            
+            ret = decoder->sendPacket(copy);
         }
-    } else {
+    } else
+    {
         // 这里必须做到send一次，receive多次，因为这个packet没法去保存，如果send不进去的话
         ret = decoder->sendPacket(data);
     }
@@ -212,8 +238,8 @@ bool HelloAVDecoder::onProcess(std::shared_ptr<InputDataCtx> inputData)
         return true; // 这里应该是不会存在 EAGAIN 的情况，因为都是send一次，receive多次
     }
 
-    logger.i("Victor decoder[%s] onProcess over pts[%d]ms serial[%d]",
-             mediaDesc, ptsUs / 1000, data->serial);
+//    logger.i("Victor decoder[%s] onProcess over pts[%d]ms serial[%d]",
+//             mediaDesc, ptsUs / 1000, data->serial);
     return true;
 }
 
@@ -280,7 +306,7 @@ void HelloAVDecoder::releaseBsf()
     }
 }
 
-void HelloAVDecoder::onReceiveFrameCallback(std::shared_ptr<IAVFrame> output, void *userdata)
+void HelloAVDecoder::onReceiveFrameCallback(const std::shared_ptr<IAVFrame> &output, void *userdata)
 {
     auto native = reinterpret_cast<HelloAVDecoder *>(userdata);
     Logger &logger = native->logger;
@@ -291,7 +317,7 @@ void HelloAVDecoder::onReceiveFrameCallback(std::shared_ptr<IAVFrame> output, vo
         logger.i("receive_frame[%s] return cause: not prepared", mediaDesc);
         return;
     }
-    
+
     // 设置媒体类型，后续流程会用到
     output->type = native->type;
     // 设置序列号

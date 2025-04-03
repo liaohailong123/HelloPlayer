@@ -24,7 +24,7 @@ extern "C"
  */
 class HelloAVDecoderCore
 {
-    typedef void (*OnReceiveFrameCallback)(std::shared_ptr<IAVFrame> frame, void *userdata);
+    typedef void (*OnReceiveFrameCallback)(const std::shared_ptr<IAVFrame> &frame, void *userdata);
 
 public:
     explicit HelloAVDecoderCore(const char *tag);

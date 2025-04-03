@@ -14,7 +14,7 @@ GLFilterChain::~GLFilterChain() {
 }
 
 
-void GLFilterChain::process(std::shared_ptr<GLFilterPacket> packet) {
+void GLFilterChain::process(const std::shared_ptr<GLFilterPacket>& packet) {
 //    int64_t startMs2 = TimeUtil::getCurrentTimeMs();
     for (const std::shared_ptr<IGLFilterNode> &filter: filters) {
 //        int64_t startMs = TimeUtil::getCurrentTimeMs();

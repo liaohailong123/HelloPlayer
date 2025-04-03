@@ -34,6 +34,8 @@ public:
 
     int64_t getDtsUs();
 
+    [[nodiscard]] const char* getMediaTypeDesc() const;
+
 public:
     Logger logger;
 

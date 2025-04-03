@@ -223,9 +223,19 @@ void HelloPlayer::registerAll(void *userData)
 
     // 消费者注册 数据回调（音频解码数据包）
     native->audioDecoder->setOutputCallback(onAudioDecoded, native);
+    std::shared_ptr<HelloAVDecoder::OnDecodeCallbackCtx> audioCtx(
+            new HelloAVDecoder::OnDecodeCallbackCtx);
+    audioCtx->callback = HelloPlayer::OnBeforeAudioDecode;
+    audioCtx->userdata = native;
+    native->audioDecoder->setOnDecodeCallbackCtx(audioCtx); // 送解码前的拦截器
     native->audioDecoder->start();
     // 消费者注册 数据回调（视频解码数据包）
     native->videoDecoder->setOutputCallback(onVideoDecoded, native);
+    std::shared_ptr<HelloAVDecoder::OnDecodeCallbackCtx> videoCtx(
+            new HelloAVDecoder::OnDecodeCallbackCtx);
+    videoCtx->callback = HelloPlayer::OnBeforeVideoDecode;
+    videoCtx->userdata = native;
+    native->videoDecoder->setOnDecodeCallbackCtx(videoCtx); // 送解码前的拦截器
     native->videoDecoder->start();
 
     // 消费者注册 数据回调（音频播放）
@@ -668,6 +678,48 @@ void HelloPlayer::onPacketRead(const std::shared_ptr<IAVPacket> &output, void *u
 }
 
 /**
+ * 音频编码数据包 送解 前的拦截器
+ * @param packet 待送解 的编码数据包
+ * @param userdata 用户携带参数
+ */
+bool HelloPlayer::OnBeforeAudioDecode(const std::shared_ptr<IAVPacket> &packet, void *userdata)
+{
+    auto native = reinterpret_cast<HelloPlayer *>(userdata);
+    Logger &logger = native->logger;
+
+    HelloClock &masterClock = native->avSync->getMasterClock();
+    std::shared_ptr<HelloAudioPlayer> player = native->audioPlayer;
+    if (player)
+    {
+        int limit = int(AudioFrameMaxCount * masterClock.speed);
+        return player->getQueueSize() >= limit;
+    }
+
+    return false;
+}
+
+/**
+ * 视频编码数据包 送解 前的拦截器
+ * @param packet 待送解 的编码数据包
+ * @param userdata 用户携带参数
+ */
+bool HelloPlayer::OnBeforeVideoDecode(const std::shared_ptr<IAVPacket> &packet, void *userdata)
+{
+    auto native = reinterpret_cast<HelloPlayer *>(userdata);
+    Logger &logger = native->logger;
+
+    HelloClock &masterClock = native->avSync->getMasterClock();
+    std::shared_ptr<HelloVideoPlayer> player = native->videoPlayer;
+    if (player)
+    {
+        int limit = int(VideoFrameMaxCount * masterClock.speed);
+        return player->getQueueSize() >= limit;
+    }
+
+    return false;
+}
+
+/**
  * 音频编码数据 解码成功后回调
  * @param output 解码好的数据
  * @param userdata 用户携带参数
@@ -805,13 +857,13 @@ void HelloPlayer::onMasterClockUpdate(int64_t ptsUs, void *userdata)
     }
     callback->onCurrentPosition(adjustPtsUs, durationUs);
 
-//    size_t audioDecoderSize = native->audioDecoder->getQueueSize();
-//    size_t videoDecoderSize = native->videoDecoder->getQueueSize();
-//    size_t audioPlayerSize = native->audioPlayer->getQueueSize();
-//    size_t videoPlayerSize = native->videoPlayer->getQueueSize();
-//    logger.i("Victor123 audioDecoder[%d] videoDecoder[%d] audioPlayer[%d] videoPlayer[%d]", audioDecoderSize,
-//             videoDecoderSize, audioPlayerSize, videoPlayerSize);
-    
+    size_t audioDecoderSize = native->audioDecoder->getQueueSize();
+    size_t videoDecoderSize = native->videoDecoder->getQueueSize();
+    size_t audioPlayerSize = native->audioPlayer->getQueueSize();
+    size_t videoPlayerSize = native->videoPlayer->getQueueSize();
+    logger.i("Victor123 audioDecoder[%d] videoDecoder[%d] audioPlayer[%d] videoPlayer[%d]", audioDecoderSize,
+             videoDecoderSize, audioPlayerSize, videoPlayerSize);
+
 //    logger.i("on master clock update adjustPts[%d]ms useAudio[%d] duration[%d]ms",
 //             adjustPtsUs / 1000, useAudio, durationUs / 1000);
 

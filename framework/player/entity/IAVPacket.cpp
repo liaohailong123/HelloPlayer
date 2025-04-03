@@ -59,3 +59,17 @@ int64_t IAVPacket::getDtsUs()
     }
     return 0;
 }
+
+const char *IAVPacket::getMediaTypeDesc() const
+{
+    switch (type)
+    {
+        case IAVMediaType::AUDIO:
+            return "audio";
+        case IAVMediaType::VIDEO:
+            return "video";
+        default:
+            break;
+    }
+    return "Unknown";
+}

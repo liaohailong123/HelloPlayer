@@ -167,7 +167,7 @@ public:
         ht = new NHandlerThread("HelloProcessorHandlerThread");
         ht->startSync();
         handler = ht->getHandler();
-        logger.i("Victor init(%p) end handler(%p) initialized",this, handler);
+        logger.i("Victor init(%p) end handler(%p) initialized", this, handler);
     }
 
     void start()

@@ -57,7 +57,7 @@ public:
      * 触发滤镜链
      * @param packet 数据包，携带输入输出纹理
      */
-    void process(std::shared_ptr<GLFilterPacket> packet);
+    void process(const std::shared_ptr<GLFilterPacket>& packet);
 
 private:
     Logger logger;

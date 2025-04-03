@@ -31,11 +31,22 @@ extern "C" {
 class HelloAVDecoder : public HelloProcessor<IAVPacket, IAVFrame>
 {
 public:
+    typedef bool(*OnBeforeDecodeCallback)(const std::shared_ptr<IAVPacket> &packet, void *userdata);
+
+    typedef struct
+    {
+        OnBeforeDecodeCallback callback;
+        void *userdata;
+    } OnDecodeCallbackCtx;
+
+public:
     explicit HelloAVDecoder(const char *tag, std::shared_ptr<HelloAVSync> avSync);
 
     ~HelloAVDecoder() override;
 
     void prepare(AVStream *stream, PlayConfig config);
+
+    void setOnDecodeCallbackCtx(const std::shared_ptr<OnDecodeCallbackCtx> &ctx);
 
     /**
      * 清空GOP中的所有参考序列帧
@@ -53,12 +64,15 @@ public:
 
 protected:
     bool onProcess(std::shared_ptr<InputDataCtx> inputData) override;
+
     void onReset() override;
 
 private:
     bool initBsf(AVStream *stream);
+
     void releaseBsf();
-    static void onReceiveFrameCallback(std::shared_ptr<IAVFrame> frame, void *userdata);
+
+    static void onReceiveFrameCallback(const std::shared_ptr<IAVFrame> &frame, void *userdata);
 
 private:
 
@@ -75,6 +89,11 @@ private:
      * 是否已经准备好
      */
     std::atomic<bool> prepared;
+
+    /**
+     * 解码拦截器，当前可能暂时不需要解码，做一个拦截
+     */
+    std::shared_ptr<OnDecodeCallbackCtx> onBeforeDecodeCallbackCtx;
 
     /**
      * 外部线程与内部handler操作相应需要同步
@@ -95,7 +114,7 @@ private:
      * 音视频解码器
      */
     std::shared_ptr<HelloAVDecoderCore> decoder;
-    
+
     /**
      * 比特流过滤器，用作h264或h265
      */

@@ -18,6 +18,9 @@
 #include "entity/PlayConfig.hpp"
 #include "entity/MediaInfo.hpp"
 #include "HelloPlayerError.hpp"
+// 音视频解码数据包，控制在一定范围内，防止内存爆炸
+#define AudioFrameMaxCount (5)
+#define VideoFrameMaxCount (5)
 
 // 回调相关
 #include "HelloPlayerCallback.hpp"
@@ -139,6 +142,20 @@ private: // Handler回调接口
      * @param userdata 用户携带参数
      */
     static void onPacketRead(const std::shared_ptr<IAVPacket> &output, void *userdata);
+
+    /**
+     * 音频编码数据包 送解 前的拦截器
+     * @param packet 待送解 的编码数据包
+     * @param userdata 用户携带参数
+     */
+    static bool OnBeforeAudioDecode(const std::shared_ptr<IAVPacket> &packet, void *userdata);
+
+    /**
+     * 视频编码数据包 送解 前的拦截器
+     * @param packet 待送解 的编码数据包
+     * @param userdata 用户携带参数
+     */
+    static bool OnBeforeVideoDecode(const std::shared_ptr<IAVPacket> &packet, void *userdata);
 
     /**
      * 音频编码数据 解码成功后回调
