@@ -18,7 +18,7 @@ long NSystemClock::uptimeMillis()
 NHandler::NHandler(HandlerMessage callback) : onDispatchMessage(callback),
                                               looper(NLooper::myLooper())
 {
-    NHLog::instance()->i("NHandler 构造函数执行");
+    NHLog::instance()->i("NHandler::NHandler(%p)", this);
     if (looper != nullptr)
     {
         messageQueue = looper->getQueue();
@@ -27,7 +27,7 @@ NHandler::NHandler(HandlerMessage callback) : onDispatchMessage(callback),
 
 NHandler::~NHandler()
 {
-    NHLog::instance()->i("~NHandler 析构函数执行");
+    NHLog::instance()->i("NHandler::~NHandler(%p)", this);
 }
 
 

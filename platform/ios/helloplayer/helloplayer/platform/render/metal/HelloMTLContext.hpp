@@ -31,6 +31,10 @@ public:
          */
         CAMetalLayer *metalLayer;
         /**
+         * Metal渲染指令集合,可以由多个 render encoder 组成
+         */
+        id<MTLCommandBuffer> commandBuffer;
+        /**
          * Metal渲染缓冲区
          */
         id <CAMetalDrawable> currentDrawable;
@@ -66,15 +70,10 @@ public:
     
     void setClearColor(float red, float green, float blue, float alpha);
     
-    id<MTLCommandBuffer> renderStart(uint64_t key);
+    bool renderStart(uint64_t key);
     
     bool renderEnd(uint64_t key);
 
-private:
-    id<MTLCommandBuffer> begin();
-    
-    void commit(id<MTLCommandBuffer> buffer, id<CAMetalDrawable> currentDrawable = nullptr);
-    
 public:
     Logger logger;
     
@@ -83,7 +82,6 @@ public:
     id<MTLLibrary> shaderLib;
     MTLRenderPassDescriptor *renderPassDescriptor;
     
-    std::unordered_map<uint64_t, id<MTLCommandBuffer>> commandBuffers;
     std::unordered_map<uint64_t, std::shared_ptr<MetalLayerCtx>> metalLayers;
     
     // clear color

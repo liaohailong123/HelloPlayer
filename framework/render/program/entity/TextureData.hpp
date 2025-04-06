@@ -16,6 +16,9 @@
 class TextureData
 {
 public:
+    explicit TextureData();
+    virtual ~TextureData();
+public:
     virtual uint8_t **getData() = 0;
 
     virtual int *getLineSize() = 0;

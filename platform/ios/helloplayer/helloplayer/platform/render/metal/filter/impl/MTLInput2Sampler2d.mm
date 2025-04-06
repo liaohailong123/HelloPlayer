@@ -61,35 +61,34 @@ void MTLInput2Sampler2d::onProcess(std::shared_ptr<MTLFilterPacket> packet)
     int textureWidth = packet->textureWidth;
     int textureHeight = packet->textureHeight;
     
-    id<MTLTexture> target = pipeline->getRenderTarget();
-    
-    if (target == nil || target.width != textureWidth || target.height != textureHeight)
+    if (pipeline->renderTarget == nil
+        || pipeline->renderTarget.width != textureWidth
+        || pipeline->renderTarget.height != textureHeight)
     {
-        target = PipelineUtil::genrateTexure2D(ctx, textureWidth, textureHeight);
+        const id<MTLTexture> &target = PipelineUtil::generateTexture2D(ctx, textureWidth, textureHeight);
         // 将内容渲染到 2d纹理上 类似OpenGLES上的fbo纹理
         pipeline->setRenderTarget(target);
     }
     
-    if (!target) {
-        logger.e("MTLInput2Sampler2d::onProcess target is nil?");
-        return;
-    }
+    auto layer = ctx->getSurfaceByKey(packet->key);
     
-    if (packet->textureData && packet->commandBuffer) {
+    if (packet->textureData)
+    {
         // 渲染管线开始绘制,内部创建 command encoder
-        pipeline->begin(packet->commandBuffer);
-        
-        // YUV内容设置
-        pipeline->setTextureData(packet->textureData);
-        
-        // 绘制
-        pipeline->draw(glm::value_ptr(packet->prjMat4));
-        
-        // 渲染管线结束绘制,结束 command encoder
-        pipeline->end();
+        if(pipeline->begin(layer->commandBuffer))
+        {
+            // YUV内容设置
+            pipeline->setTextureData(packet->textureData);
+            
+            // 绘制
+            pipeline->draw(glm::value_ptr(packet->prjMat4));
+            
+            // 渲染管线结束绘制,结束 command encoder
+            pipeline->end();
+        }
+
     }
     
     // 本次渲染的结果,作为下一个过滤器的资源
-    packet->texture = target;
-
+    packet->texture = pipeline->renderTarget;
 }

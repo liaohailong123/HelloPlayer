@@ -16,6 +16,8 @@
 // 鸿蒙平台 视频解码
 #include "multimedia/player_framework/native_avbuffer_info.h"
 #include "multimedia/player_framework/native_avcodec_videodecoder.h"
+// 官方文档：
+// https://developer.huawei.com/consumer/cn/doc/harmonyos-guides-V14/avcodec-support-formats-V14#%E8%A7%86%E9%A2%91%E8%A7%A3%E7%A0%81
 
 extern "C"
 {

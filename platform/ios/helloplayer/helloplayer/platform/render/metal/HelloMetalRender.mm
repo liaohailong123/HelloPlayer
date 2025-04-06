@@ -163,9 +163,12 @@ bool HelloMetalRender::clearColor(float r, float g, float b, float a)
     mtlContext->setClearColor(r, g, b, a);
     for (uint64_t key: keys)
     {
-        mtlContext->renderStart(key); // 清空缓冲区内容,使用clearColor擦拭缓冲区
+        
+        @autoreleasepool {
+            mtlContext->renderStart(key); // 清空缓冲区内容,使用clearColor擦拭缓冲区
 
-        mtlContext->renderEnd(key); // 提交缓冲区
+            mtlContext->renderEnd(key); // 提交缓冲区
+        }
     }
     
     return true;
@@ -186,21 +189,24 @@ bool HelloMetalRender::draw(std::shared_ptr<HelloVideoFrame> frame)
     mtlContext->getSurfaceKeys(&keys);
     for (uint64_t key: keys)
     {
-        id<MTLCommandBuffer> commandBuffer = mtlContext->renderStart(key); // 清空缓冲区内容,使用clearColor擦拭缓冲区
-        
-        // 执行滤镜链
-        filterPacket->key = key;
-        filterPacket->commandBuffer = commandBuffer; // Metal渲染指令集合
-        filterPacket->width = mtlContext->getSurfaceWidth(key); // 视口宽度
-        filterPacket->height = mtlContext->getSurfaceHeight(key); // 视口高度
-        filterPacket->textureWidth = frame->getWidth(); // 输入纹理的宽度
-        filterPacket->textureHeight = frame->getHeight(); // 输入纹理的高度
-        std::shared_ptr<HelloMTLVideoTexture> data = std::make_shared<HelloMTLVideoTexture>(frame);
-        filterPacket->textureData = data;
+        @autoreleasepool {
+            mtlContext->renderStart(key); // 清空缓冲区内容,使用clearColor擦拭缓冲区
+            
+            // 执行滤镜链
+            filterPacket->key = key;
+            filterPacket->width = mtlContext->getSurfaceWidth(key); // 视口宽度
+            filterPacket->height = mtlContext->getSurfaceHeight(key); // 视口高度
+            filterPacket->textureWidth = frame->getWidth(); // 输入纹理的宽度
+            filterPacket->textureHeight = frame->getHeight(); // 输入纹理的高度
+            std::shared_ptr<HelloMTLVideoTexture> data = std::make_shared<HelloMTLVideoTexture>(frame);
+            filterPacket->textureData = data;
 
-        filterChain->process(filterPacket);
+            filterChain->process(filterPacket);
 
-        mtlContext->renderEnd(key); // 提交缓冲区
+            mtlContext->renderEnd(key); // 提交缓冲区
+            
+            filterPacket->texture = nil;
+        }
     }
     
     return true;

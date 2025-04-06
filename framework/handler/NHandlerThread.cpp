@@ -8,14 +8,9 @@
 #include "NativeHandler.hpp"
 
 
-NHandlerThread::NHandlerThread(std::string _name, HandlerMessage _callback) : name(std::move(_name)),
-                                                                              callback(_callback),
-                                                                              onHandler(nullptr),
-                                                                              thread(nullptr),
-                                                                              args(nullptr),
-                                                                              handler(nullptr),
-                                                                              mutex(), cond(),
-                                                                              active(false)
+NHandlerThread::NHandlerThread(std::string _name, HandlerMessage _callback)
+    : name(std::move(_name)), callback(_callback), onHandler(nullptr), thread(nullptr), args(nullptr), handler(nullptr),
+      mutex(), cond(), active(false), start_flag()
 {
     NHLog::instance()->i("NHandlerThread::NHandlerThread(%s)", name.c_str());
 }
@@ -28,25 +23,30 @@ NHandlerThread::~NHandlerThread()
 
 void NHandlerThread::startSync()
 {
-    start([](NHandler *h, void *userdata) -> void {
-        auto native = reinterpret_cast<NHandlerThread *>(userdata);
+    start(
+        [](NHandler *h, void *userdata) -> void {
+            auto native = reinterpret_cast<NHandlerThread *>(userdata);
 
-        // std::atomic<bool> active; 确保 active 是原子变量
-        native->active = true;
-        NHLog::instance()->i("Victor active.store(true)");
+            // std::atomic<bool> active; 确保 active 是原子变量
+            native->active.store(true, std::memory_order_release);
+            NHLog::instance()->i("Victor active.store(true)");
 
-        native->cond.notify_all(); // 唤醒调用线程
-        NHLog::instance()->i("Victor cond.notify_all()");
-    }, this);
+            native->cond.notify_all(); // 唤醒调用线程
+            NHLog::instance()->i("Victor cond.notify_all()");
+        },
+        this);
 
     // 避免竞争条件并简化同步逻辑
     std::unique_lock<std::mutex> locker(mutex);
 
     // 使用 while 循环检查条件，避免虚假唤醒
-    while (!active.load())
+    while (!active.load(std::memory_order_acquire))
     {
-        NHLog::instance()->i("Victor cond.wait(locker)");
-        cond.wait(locker);
+        NHLog::instance()->i("Victor cond.wait_for(locker, 10ms)");
+        if (cond.wait_for(locker, std::chrono::milliseconds(10)) == std::cv_status::timeout)
+        {
+            NHLog::instance()->i("Victor cond.wait_for timeout, rechecking active...");
+        }
     }
 
     // 在此处加入日志打印，检查 active 变量的状态
@@ -55,12 +55,16 @@ void NHandlerThread::startSync()
 
 void NHandlerThread::start(OnHandlerCallback r, void *_args)
 {
-    if (thread == nullptr)
-    {
+    std::call_once(start_flag, [&]() {
         args = _args;
         onHandler = r;
         thread = new std::thread(&NHandlerThread::run, std::ref(*this));
-    }
+
+        if (thread == nullptr)
+        {
+            NHLog::instance()->i("Thread creation failed");
+        }
+    });
 }
 
 void NHandlerThread::run()
@@ -77,10 +81,7 @@ void NHandlerThread::run()
     NLooper::loop();
 }
 
-NHandler *NHandlerThread::getHandler()
-{
-    return handler;
-}
+NHandler *NHandlerThread::getHandler() { return handler; }
 
 void NHandlerThread::quite()
 {

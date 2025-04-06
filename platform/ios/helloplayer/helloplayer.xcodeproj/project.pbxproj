@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		C71830B82D917EDE00766E8D /* HelloPlayerState.h in Headers */ = {isa = PBXBuildFile; fileRef = C71830A92D917EDE00766E8D /* HelloPlayerState.h */; };
-		C71830B92D917EDE00766E8D /* HelloEAGLContext.hpp in Headers */ = {isa = PBXBuildFile; fileRef = C71830AD2D917EDE00766E8D /* HelloEAGLContext.hpp */; };
 		C71830BA2D917EDE00766E8D /* HelloiOSCallback.hpp in Headers */ = {isa = PBXBuildFile; fileRef = C71830A32D917EDE00766E8D /* HelloiOSCallback.hpp */; };
 		C71830BB2D917EDE00766E8D /* HelloAudioUnitRender.hpp in Headers */ = {isa = PBXBuildFile; fileRef = C71830AB2D917EDE00766E8D /* HelloAudioUnitRender.hpp */; };
 		C71830BC2D917EDE00766E8D /* helloplayer.h in Headers */ = {isa = PBXBuildFile; fileRef = C71830B32D917EDE00766E8D /* helloplayer.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -17,7 +16,6 @@
 		C71830BF2D917EDE00766E8D /* HelloPlayerView.h in Headers */ = {isa = PBXBuildFile; fileRef = C71830B52D917EDE00766E8D /* HelloPlayerView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C71830C12D917EDE00766E8D /* HelloAudioUnitRender.mm in Sources */ = {isa = PBXBuildFile; fileRef = C71830AC2D917EDE00766E8D /* HelloAudioUnitRender.mm */; };
 		C71830C32D917EDE00766E8D /* helloplayer.mm in Sources */ = {isa = PBXBuildFile; fileRef = C71830B42D917EDE00766E8D /* helloplayer.mm */; };
-		C71830C42D917EDE00766E8D /* HelloEAGLContext.mm in Sources */ = {isa = PBXBuildFile; fileRef = C71830AE2D917EDE00766E8D /* HelloEAGLContext.mm */; };
 		C71830C52D917EDE00766E8D /* HelloPlayerView.mm in Sources */ = {isa = PBXBuildFile; fileRef = C71830B62D917EDE00766E8D /* HelloPlayerView.mm */; };
 		C71830C62D917EDE00766E8D /* HelloiOSCallback.mm in Sources */ = {isa = PBXBuildFile; fileRef = C71830A42D917EDE00766E8D /* HelloiOSCallback.mm */; };
 		C71830C72D917EDE00766E8D /* HelloiOSCallbackCtx.mm in Sources */ = {isa = PBXBuildFile; fileRef = C71830A62D917EDE00766E8D /* HelloiOSCallbackCtx.mm */; };
@@ -595,8 +593,6 @@
 		C71830A92D917EDE00766E8D /* HelloPlayerState.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HelloPlayerState.h; sourceTree = "<group>"; };
 		C71830AB2D917EDE00766E8D /* HelloAudioUnitRender.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = HelloAudioUnitRender.hpp; sourceTree = "<group>"; };
 		C71830AC2D917EDE00766E8D /* HelloAudioUnitRender.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = HelloAudioUnitRender.mm; sourceTree = "<group>"; };
-		C71830AD2D917EDE00766E8D /* HelloEAGLContext.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = HelloEAGLContext.hpp; sourceTree = "<group>"; };
-		C71830AE2D917EDE00766E8D /* HelloEAGLContext.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = HelloEAGLContext.mm; sourceTree = "<group>"; };
 		C71830B32D917EDE00766E8D /* helloplayer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = helloplayer.h; sourceTree = "<group>"; };
 		C71830B42D917EDE00766E8D /* helloplayer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = helloplayer.mm; sourceTree = "<group>"; };
 		C71830B52D917EDE00766E8D /* HelloPlayerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HelloPlayerView.h; sourceTree = "<group>"; };
@@ -1159,11 +1155,6 @@
 			path = metal;
 			sourceTree = "<group>";
 		};
-		C7D921702D9D3371004B2E4C /* opengl */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = opengl;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1200,12 +1191,9 @@
 		C71830B12D917EDE00766E8D /* render */ = {
 			isa = PBXGroup;
 			children = (
-				C7D921702D9D3371004B2E4C /* opengl */,
 				C77860C22D9909BA00B08C0C /* metal */,
 				C71830AB2D917EDE00766E8D /* HelloAudioUnitRender.hpp */,
 				C71830AC2D917EDE00766E8D /* HelloAudioUnitRender.mm */,
-				C71830AD2D917EDE00766E8D /* HelloEAGLContext.hpp */,
-				C71830AE2D917EDE00766E8D /* HelloEAGLContext.mm */,
 			);
 			path = render;
 			sourceTree = "<group>";
@@ -1989,7 +1977,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				C71830B82D917EDE00766E8D /* HelloPlayerState.h in Headers */,
-				C71830B92D917EDE00766E8D /* HelloEAGLContext.hpp in Headers */,
 				C71830BA2D917EDE00766E8D /* HelloiOSCallback.hpp in Headers */,
 				C71830BB2D917EDE00766E8D /* HelloAudioUnitRender.hpp in Headers */,
 				C71830BC2D917EDE00766E8D /* helloplayer.h in Headers */,
@@ -2364,7 +2351,6 @@
 			);
 			fileSystemSynchronizedGroups = (
 				C77860C22D9909BA00B08C0C /* metal */,
-				C7D921702D9D3371004B2E4C /* opengl */,
 			);
 			name = helloplayer;
 			packageProductDependencies = (
@@ -2565,7 +2551,6 @@
 			files = (
 				C71830C12D917EDE00766E8D /* HelloAudioUnitRender.mm in Sources */,
 				C71830C32D917EDE00766E8D /* helloplayer.mm in Sources */,
-				C71830C42D917EDE00766E8D /* HelloEAGLContext.mm in Sources */,
 				C71834672D917F0200766E8D /* HelloAudioRender.cpp in Sources */,
 				C71834682D917F0200766E8D /* h26x_sps_parse.cpp in Sources */,
 				C71834692D917F0200766E8D /* HelloPlayerCallback.cpp in Sources */,

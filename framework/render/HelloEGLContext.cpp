@@ -125,6 +125,13 @@ bool HelloEGLContext::usePbufferSurface() {
 
 bool HelloEGLContext::addSurface(void *_surface, bool encode)
 {
+#ifdef  __ANDROID__
+    ANativeWindow *surface = static_cast<ANativeWindow *>(_surface);
+    int32_t width = ANativeWindow_getWidth(surface);
+    int32_t height = ANativeWindow_getHeight(surface);
+#endif
+
+#ifdef  __OHOS__
     OHNativeWindow *surface = static_cast<OHNativeWindow *>(_surface);
     int32_t width = 0;
     int32_t height = 0;
@@ -134,19 +141,13 @@ bool HelloEGLContext::addSurface(void *_surface, bool encode)
         logger.i("Cannot get NativeWindow width and height");
         return false;
     }
-    
+#endif
 
     int attr_list[] = {
             EGL_NONE
     };
     // 将上层传递下来的surface制作成 EGLSurface
     EGLSurface _eglSurface = eglCreateWindowSurface(eglDisplay, eglConfig, (EGLNativeWindowType) surface, attr_list);
-    if(_eglSurface == EGL_NO_SURFACE) {
-        logger.i("eglCreateWindowSurface error : %d", eglGetError());
-        return -1;
-    }
-    logger.i("eglCreateWindowSurface success eglSurface(%p)", _eglSurface);
-    
     // 确定使用当前 EGLSurface 作为前置缓冲区buffer运送的目的地
     if (!eglMakeCurrent(eglDisplay, _eglSurface, _eglSurface, eglContext))
     {
@@ -174,6 +175,16 @@ bool HelloEGLContext::addSurface(void *_surface, bool encode)
         logger.i("Surface [%llu] is already added", key);
     }
 
+    // 下面这个接口是 Android 平台特有，跟 MediaCodec 搭配使用，当渲染缓冲区交换之后，调用此函数，通知 MediaCodec 进行编码
+    // 检查eglPresentationTimeANDROID函数是否有效
+    auto pfneglPresentationTimeANDROID
+            = reinterpret_cast<PFNEGLPRESENTATIONTIMEANDROIDPROC>(eglGetProcAddress(
+                    "eglPresentationTimeANDROID"));
+    if (!pfneglPresentationTimeANDROID)
+    {
+        logger.i("eglPresentationTimeANDROID is not available!");
+    } else
+        logger.i("eglPresentationTimeANDROID is available!");
     return true;
 }
 
@@ -239,6 +250,7 @@ bool HelloEGLContext::renderStart(uint64_t key)
         logger.i("eglMakeCurrent error : %d", eglGetError());
         return false;
     }
+
     // 恢复渲染目标到当前屏幕
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     // 使用黑色清屏

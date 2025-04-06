@@ -7,7 +7,7 @@
 
 #include "MTLFilterPacket.hpp"
 
-MTLFilterPacket::MTLFilterPacket(glm::mat4 _prjMat4): logger("MTLFilterPacket"), commandBuffer(nil), prjMat4(_prjMat4)
+MTLFilterPacket::MTLFilterPacket(glm::mat4 _prjMat4): logger("MTLFilterPacket"), prjMat4(_prjMat4)
 {
     logger.i("MTLFilterPacket::MTLFilterPacket(%p)", this);
 }

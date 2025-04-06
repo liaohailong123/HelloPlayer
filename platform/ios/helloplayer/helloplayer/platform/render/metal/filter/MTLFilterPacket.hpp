@@ -28,10 +28,6 @@ private:
 
 public:
     /**
-     * Metal绘制指令buffer,用来装载渲染管线和绘制数据
-     */
-    id<MTLCommandBuffer> commandBuffer;
-    /**
      * 项目矩阵：默认正交投影
      */
     glm::mat4 prjMat4;

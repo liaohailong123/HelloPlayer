@@ -7,7 +7,7 @@
 
 #include "HelloMTLContext.hpp"
 
-HelloMTLContext::HelloMTLContext(const char *tag): logger(tag), metalLayers(), renderPassDescriptor(nil), commandBuffers(), red(0), green(0), blue(0), alpha(1.0)
+HelloMTLContext::HelloMTLContext(const char *tag): logger(tag), metalLayers(), renderPassDescriptor(nil), red(0), green(0), blue(0), alpha(1.0)
 {
     this->device = MTLCreateSystemDefaultDevice();
     this->commandQueue = [this->device newCommandQueue];
@@ -29,6 +29,7 @@ HelloMTLContext::HelloMTLContext(const char *tag): logger(tag), metalLayers(), r
 
 HelloMTLContext::~HelloMTLContext()
 {
+    renderPassDescriptor = nil;
     logger.i("HelloMTLContext::~HelloMTLContext(%p)", this);
 }
 
@@ -54,9 +55,9 @@ bool HelloMTLContext::addSurface(void *surface)
     std::shared_ptr<MetalLayerCtx> ctx(new MetalLayerCtx());
     ctx->key = key;
     ctx->metalLayer = layer;
+    ctx->commandBuffer = nil;
     ctx->width = width;
     ctx->height = height;
-    layer.device = device;
     
     auto find = metalLayers.find(key);
     if (find == metalLayers.end()) {
@@ -72,7 +73,16 @@ bool HelloMTLContext::removeSurface(void *surface)
 {
     uint64_t key = reinterpret_cast<uint64_t>(surface);
     logger.i("removeSurface [%llu]", key);
-    metalLayers.erase(key);
+    auto find = metalLayers.find(key);
+    if (find != metalLayers.end())
+    {
+        if (find->second->commandBuffer) {
+            [find->second->commandBuffer commit];
+            find->second->commandBuffer = nil;
+        }
+        metalLayers.erase(find);
+    }
+    
     return true;
 }
 
@@ -128,80 +138,57 @@ void HelloMTLContext::setClearColor(float r, float g, float b, float a)
     this->alpha = a;
 }
 
-id<MTLCommandBuffer> HelloMTLContext::renderStart(uint64_t key)
+bool HelloMTLContext::renderStart(uint64_t key)
 {
-    // 查一下是否已经存在
-    auto find = commandBuffers.find(key);
-    if (find != commandBuffers.end()) {
-        id<MTLCommandBuffer> commandBuffer = find->second;
-        if (commandBuffer) {
-            logger.e("commandBuffer is already exist");
-            return commandBuffer;
-        }
+    auto findLayer = metalLayers.find(key);
+    if (findLayer == metalLayers.end()) return false;
+
+    const std::shared_ptr<MetalLayerCtx> &ctx = findLayer->second;
+    if (ctx->commandBuffer)
+    {
+        logger.e("commandBuffer is already exist");
+        return false;
     }
 
-    auto findLayer = metalLayers.find(key);
-    if (findLayer == metalLayers.end())return nil;
-    
-    std::shared_ptr<MetalLayerCtx> ctx = findLayer->second;
-    
-    // 首先清除一次 color buffer
-    if (renderPassDescriptor) {
-        // metalLayer.currentDrawable 每调用一次,需要 [buffer presentDrawable:currentDrawable]; 一次消费掉
-        if (ctx->currentDrawable == nil) {
-            ctx->currentDrawable = ctx->metalLayer.nextDrawable;
-        }
-        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(red, green, blue, alpha);
-        renderPassDescriptor.colorAttachments[0].texture = ctx->currentDrawable.texture;
-    } else {
-        logger.i("MTLPipeline::setClearColor renderPassDescriptor is null?");
-        return nil;
+    ctx->currentDrawable = ctx->metalLayer.nextDrawable;
+    if (!ctx->currentDrawable)
+    {
+        logger.e("No drawable from CAMetalLayer!");
+        return false;
     }
     
-    id<MTLCommandBuffer> commandBuffer = begin();
-    commandBuffers[key] = commandBuffer;
+    ctx->commandBuffer = [commandQueue commandBuffer];
+    if (!ctx->commandBuffer)
+    {
+        return false;
+    }
+    ctx->commandBuffer.label = @"HelloMTLCommandBuffer";
     
-    // 创建一个 encoder 然后直接 结束, 达到 clear color 的效果
-    id <MTLRenderCommandEncoder> encoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
+    // 设置 renderPassDescriptor
+    renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(red, green, blue, alpha);
+    renderPassDescriptor.colorAttachments[0].texture = ctx->currentDrawable.texture;
+
+    // 清屏
+    id<MTLRenderCommandEncoder> encoder = [ctx->commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
     [encoder endEncoding];
-    
-    return commandBuffer;
+
+    return true;
 }
 
 bool HelloMTLContext::renderEnd(uint64_t key)
 {
-    // 查一下是否已经存在
-    auto find = commandBuffers.find(key);
-    if (find == commandBuffers.end()) {
-        logger.e("Cannot render end cause commandBuffer is nullptr?");
-        return false;
-    }
-    id<MTLCommandBuffer> commandBuffer = find->second;
-    commandBuffers.erase(find);
-
     auto findLayer = metalLayers.find(key);
-    if (findLayer == metalLayers.end())return false;
-    
+    if (findLayer == metalLayers.end()) return false;
+
     std::shared_ptr<MetalLayerCtx> ctx = findLayer->second;
-    if (ctx->currentDrawable) {
-        commit(commandBuffer, ctx->currentDrawable);
-        ctx->currentDrawable = nil;
-    }
-    commandBuffer = nil;
     
-    return true;
-}
-
-
-id<MTLCommandBuffer> HelloMTLContext::begin()
-{
-    return [this->commandQueue commandBuffer];
-}
-
-void HelloMTLContext::commit(id<MTLCommandBuffer> buffer, id<CAMetalDrawable> currentDrawable)
-{
-    if (currentDrawable) {
-        [buffer presentDrawable:currentDrawable];
+    if (ctx->commandBuffer)
+    {
+        [ctx->commandBuffer presentDrawable:ctx->currentDrawable];
+        [ctx->commandBuffer commit];
     }
-    [buffer commit];
+    ctx->currentDrawable = nil;
+    ctx->commandBuffer = nil;
+
+    return true;
 }

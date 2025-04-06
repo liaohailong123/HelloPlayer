@@ -24,7 +24,7 @@ IAVFrame::~IAVFrame()
         av_frame_free(&frame);
         frame = nullptr;
     }
-//    logger.i("IAVFrame::~IAVFrame(%p)", this);
+//    logger.i("IAVFramree::~IAVFrame(%p)", this);
 }
 
 int64_t IAVFrame::getPtsUs()
@@ -83,7 +83,7 @@ int IAVFrame::readAudioSamples(void *audioData, int64_t offset, int nb_samples)
     int count = 0;
     if (frame)
     {
-        int64_t remainingSamples = frame->nb_samples - readSamples;
+        int remainingSamples = frame->nb_samples - readSamples;
         if (remainingSamples <= 0)
         {
             // 无数据可读了

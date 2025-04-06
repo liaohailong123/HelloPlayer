@@ -28,41 +28,27 @@ void MTLTexture2Layer::onProcess(std::shared_ptr<MTLFilterPacket> packet)
     }
     
     // 本次渲染需要上屏幕显示
-    std::shared_ptr<HelloMTLContext::MetalLayerCtx> layerCtx = ctx->getSurfaceByKey(packet->key);
-    if (!layerCtx || !layerCtx->metalLayer) {
+    const std::shared_ptr<HelloMTLContext::MetalLayerCtx> &layer = ctx->getSurfaceByKey(packet->key);
+    if (!layer) {
         logger.i("MTLTexture2Layer::onProcess cannot found layerCtx?");
-        return;
-    }
-    
-    id<CAMetalDrawable> drawable = layerCtx->currentDrawable;
-    if (!drawable) {
-        logger.i("MTLTexture2Layer::onProcess drawable is nil?");
-        return;
-    }
-    
-    id<MTLTexture> target = drawable.texture;
-    if (!target) {
-        logger.i("MTLTexture2Layer::onProcess drawable.texture is nil?");
         return;
     }
 
     // 配置CAMetalLayer的纹理,接下来绘制内容就能上屏了
-    pipeline->setRenderTarget(target);
+    pipeline->setRenderTarget(layer->currentDrawable.texture);
     
     // 渲染管线开始绘制,内部创建 command encoder
-    pipeline->begin(packet->commandBuffer);
+    if(pipeline->begin(layer->commandBuffer))
+    {
+        // 设置资源纹理,将这个纹理内容,按照fitXY(平铺)的方式渲染
+        pipeline->setTexture(packet->texture);
+        
+        // 绘制
+        pipeline->draw(glm::value_ptr(packet->prjMat4));
+        
+        // 渲染管线结束绘制,结束 command encoder
+        pipeline->end();
+    }
     
-    // 设置资源纹理,将这个纹理内容,按照fitXY(平铺)的方式渲染
-    std::vector<id<MTLTexture>> textures = { packet->texture };
-    pipeline->setTexture(textures);
-    
-    // 绘制
-    pipeline->draw(glm::value_ptr(packet->prjMat4));
-    
-    // 渲染管线结束绘制,结束 command encoder
-    pipeline->end();
-    
-//    int64_t costMs = TimeUtil::getCurrentTimeMs() - startMs;
-//    logger.i("MTLTexture2Layer::onProcess cost[%d]ms", costMs);
-    
+    packet->texture = nil;
 }

@@ -487,6 +487,7 @@ private:
     std::mutex mutex;
     std::condition_variable cond;
     std::atomic<bool> active;
+    std::once_flag start_flag;
 
     /**
      * 子线程运行函数

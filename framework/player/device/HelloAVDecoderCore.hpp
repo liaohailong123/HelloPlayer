@@ -36,7 +36,7 @@ public:
      */
     virtual bool needAnnexB();
 
-    virtual bool prepare(AVStream *stream, PlayConfig config) = 0;
+    virtual bool prepare(AVStream *stream, const PlayConfig &config) = 0;
 
     /**
      * 清空GOP中的所有参考序列帧
@@ -48,7 +48,7 @@ public:
     virtual std::shared_ptr<VideoProperties> getVideoProperties() = 0;
 
     /**
-     * @param pkt 编码数据
+     * @param packet 编码数据
      * @return 参考 avcodec_send_packet 注解
      */
     virtual int sendPacket(std::shared_ptr<IAVPacket> packet) = 0;

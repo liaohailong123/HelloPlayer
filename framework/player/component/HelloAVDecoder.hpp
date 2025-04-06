@@ -40,11 +40,11 @@ public:
     } OnDecodeCallbackCtx;
 
 public:
-    explicit HelloAVDecoder(const char *tag, std::shared_ptr<HelloAVSync> avSync);
+    explicit HelloAVDecoder(const char *tag, const std::shared_ptr<HelloAVSync> &avSync);
 
     ~HelloAVDecoder() override;
 
-    void prepare(AVStream *stream, PlayConfig config);
+    void prepare(AVStream *stream, const PlayConfig &config);
 
     void setOnDecodeCallbackCtx(const std::shared_ptr<OnDecodeCallbackCtx> &ctx);
 
@@ -71,6 +71,10 @@ private:
     bool initBsf(AVStream *stream);
 
     void releaseBsf();
+    
+    int sendPacket(const std::shared_ptr<IAVPacket> &data);
+    
+    void sendEofPakcet();
 
     static void onReceiveFrameCallback(const std::shared_ptr<IAVFrame> &frame, void *userdata);
 
@@ -81,10 +85,6 @@ private:
      */
     std::shared_ptr<HelloAVSync> avSync;
 
-    /**
-     * 播放配置
-     */
-    PlayConfig config;
     /**
      * 是否已经准备好
      */

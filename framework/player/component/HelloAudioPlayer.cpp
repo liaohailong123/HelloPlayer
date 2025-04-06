@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <utility>
 
-FILE *pcmFile = nullptr;
+//FILE *pcmFile = nullptr;
 
 
 HelloAudioPlayer::HelloAudioPlayer(std::shared_ptr<HelloAVSync> avSync) :
@@ -26,10 +26,10 @@ HelloAudioPlayer::HelloAudioPlayer(std::shared_ptr<HelloAVSync> avSync) :
 //    pcmFile = fopen(
 //            "/data/storage/el2/base/haps/entry/files/44100_2_s16le.pcm",
 //            "wb");
-    if (pcmFile)
-    {
-        logger.i("pcmFile opened");
-    }
+//    if (pcmFile)
+//    {
+//        logger.i("pcmFile opened");
+//    }
 }
 
 HelloAudioPlayer::~HelloAudioPlayer()
@@ -86,7 +86,7 @@ bool HelloAudioPlayer::isDefaultVolume() const
 }
 
 /**
- * @param speed  音频速率，默认1.0 范围[0.5,100]
+ * @param _speed  音频速率，默认1.0 范围[0.5,100]
  */
 void HelloAudioPlayer::setSpeed(double _speed)
 {
@@ -159,8 +159,8 @@ void HelloAudioPlayer::ensureAudioControllerIfNecessary(const std::shared_ptr<IA
             audioController->setSpeed(speed);
             audioController->init();
 
-            logger.i("audioController create success format[%d] -> format[%d]",
-                     frame->frame->format,renderProperties->sampleFmt);
+            logger.i("audioController create success volume[%.2f] speed[%.2f] format[%d] -> format[%d]",
+                     volume,speed,frame->frame->format,renderProperties->sampleFmt);
         }
 
     }
@@ -188,7 +188,7 @@ bool HelloAudioPlayer::onProcess(std::shared_ptr<InputDataCtx> inputData)
     return false;
 }
 
-int64_t addFilterCount = 0;
+//int64_t addFilterCount = 0;
 
 void HelloAudioPlayer::onDataCallback(HelloAudioRender *render,
                                       void *audioData, int32_t numFrames, void *userdata)
@@ -244,6 +244,7 @@ void HelloAudioPlayer::onDataCallback(HelloAudioRender *render,
         // 取出一帧音频数据
         std::shared_ptr<InputDataCtx> inputData = native->peekFirst();
         frame = inputData->data;
+//        logger.i("frame pts[%d]ms",frame->getPtsUs()/1000);
 
         // 序列号不对了，丢弃该包
         if (masterClock.serial != frame->serial)
@@ -260,7 +261,6 @@ void HelloAudioPlayer::onDataCallback(HelloAudioRender *render,
 
         if (frame->eof)
         {
-            logger.i("receive eof");
             // 回调出去，外部可能会做对应逻辑处理
             native->sendCallback(frame);
             return;
@@ -284,6 +284,7 @@ void HelloAudioPlayer::onDataCallback(HelloAudioRender *render,
         if (frame)
         {
             audioClock = frame->getPtsUs(); // AudioController中把pts改成了变速时间
+//            logger.i("audioClock[%d]ms", audioClock/1000);
         }
 
         numFrames -= static_cast<int32_t>(samples);
@@ -291,11 +292,11 @@ void HelloAudioPlayer::onDataCallback(HelloAudioRender *render,
         writeOffset += (bytesPerFrame * samples);
     }
 
-    // 测试代码
-    if (pcmFile)
-    {
-        fwrite(audioData, 1, totalBytesCount, pcmFile);
-    }
+//    // 测试代码
+//    if (pcmFile)
+//    {
+//        fwrite(audioData, 1, totalBytesCount, pcmFile);
+//    }
 
     // 更新当前时钟，方便下次判断时间差
     int samplerRate = native->properties->sampleRate;
@@ -347,7 +348,7 @@ HelloAudioPlayer::onFillData(const std::shared_ptr<IAVFrame>& frame,
             if (filterFrame)
             {
 
-                addFilterCount--;
+//                addFilterCount--;
                 native->lastFrame = std::make_shared<IAVFrame>();
 
                 // 转移数据
@@ -374,12 +375,12 @@ HelloAudioPlayer::onFillData(const std::shared_ptr<IAVFrame>& frame,
                 }
             } else
             {
-                int64_t ptsUs = frame->getPtsUs();
+//                int64_t ptsUs = frame->getPtsUs();
                 bool add = audioController->addFrame(frame->frame);
                 if (add)
                 {
 //                    logger.i("audio controller add frame pts[%d]ms", ptsUs / 1000);
-                    addFilterCount++;
+//                    addFilterCount++;
                 } else
                 {
                     logger.i("Cannot add frame to audioController");

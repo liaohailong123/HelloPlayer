@@ -6,7 +6,7 @@
 #define HELLOOPENGLES_HELLOEGLCONTEXT_HPP
 
 
-#include "framework/render/IGLContext.hpp"
+#include "IGLContext.hpp"
 
 #include <functional>
 #include <vector>
@@ -16,12 +16,18 @@
 #include <EGL/eglext.h>
 #include <EGL/eglplatform.h>
 
+#ifdef  __ANDROID__
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
+#endif
+
+#ifdef  __OHOS__
+#include <native_window/external_window.h>
+#endif
 
 // 输出log日志
-#include "framework/log/Logger.hpp"
-#include "framework/render/program/GLSLUtil.hpp"
+#include "../log/Logger.hpp"
+#include "../render/program/GLSLUtil.hpp"
 
 /**
  * create by liaohailong

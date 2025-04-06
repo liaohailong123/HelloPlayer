@@ -144,6 +144,20 @@ namespace GLSLUtil
      * @return fbo id
      */
     GLuint textureAttach2Fbo(GLuint texture);
+
+    /**
+     * 绑定VAO VBO
+     * Vertex Buffer Object + Vertex Array Object
+     * @param sVertices 固定格式：前三个顶点坐标，后两个纹理坐标
+                 // positions         // texture coords
+                -1.0f, -1.0f, 0.0f,     0.0f, 1.0f,
+     * @param vertexIndex 顶点着色器中，顶点坐标属性句柄
+     * @param textureIndex 顶点着色器中，纹理坐标属性句柄
+     * @return
+     */
+    bool generateVAOVBO(float *sVertices,int count, GLuint vertexIndex, GLuint textureIndex, GLuint &vao, GLuint &vbo);
+
+    void deleteVAOVBO(GLuint &vao, GLuint &vbo);
 }
 
 

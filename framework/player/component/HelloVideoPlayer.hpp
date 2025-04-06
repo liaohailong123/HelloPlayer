@@ -42,12 +42,13 @@ class HelloVideoPlayer : public HelloProcessor<IAVFrame, IAVFrame>
         explicit AVFrameTexImage(std::shared_ptr<IAVFrame> frame) : HelloVideoFrame("HelloAVFrame")
         {
             this->frame = std::move(frame);
-//            logger.i("AVFrameTexImage()");
+//            logger.i("AVFrameTexImage(%p)", this);
         }
 
         ~AVFrameTexImage() override
         {
-//            logger.i("~AVFrameTexImage()");
+            this->frame = nullptr;
+//            logger.i("~AVFrameTexImage(%p)", this);
         }
 
         uint8_t **getData() override
@@ -88,7 +89,7 @@ public:
 
     void removeSurface(void *surface);
 
-    void prepare(const std::shared_ptr<VideoProperties> &properties, PlayConfig config);
+    void prepare(const std::shared_ptr<VideoProperties> &properties, const PlayConfig &config);
 
     inline bool isPrepared() const noexcept
     {

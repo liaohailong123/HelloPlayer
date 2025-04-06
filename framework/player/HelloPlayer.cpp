@@ -47,7 +47,7 @@ void HelloPlayer::setConfig(PlayConfig config)
     playConfig = config; // 值传递
 }
 
-PlayConfig HelloPlayer::getConfig()
+const PlayConfig &HelloPlayer::getConfig()
 {
     return playConfig; // 值传递
 }
@@ -129,13 +129,15 @@ bool HelloPlayer::isSeeking()
 
 void HelloPlayer::seekTo(int64_t ptsUs, bool _autoPlay)
 {
-    logger.i("HelloPlayer(%p)::seekTo(%ld,%d)", this, ptsUs, _autoPlay);
 
+    // PS: 直播流不允许seek
     if (mediaInfo.isLiveStreaming)
     {
         logger.i("This is a live streaming, seeking is not allowed");
         return;
     }
+    
+    logger.i("HelloPlayer(%p)::seekTo(%ld,%d)", this, ptsUs, _autoPlay);
 
     if (playerHandler)
     {
@@ -208,7 +210,7 @@ void HelloPlayer::reset()
 void HelloPlayer::registerAll(void *userData)
 {
     auto native = reinterpret_cast<HelloPlayer *>(userData);
-    PlayConfig *playerConfig = &native->playConfig;
+    PlayConfig &playerConfig = native->playConfig;
 
     // 初始化所有组件
     native->dataReader = std::make_shared<HelloDataReader>(native->avSync);
@@ -240,8 +242,8 @@ void HelloPlayer::registerAll(void *userData)
 
     // 消费者注册 数据回调（音频播放）
     native->audioPlayer->setOutputCallback(onAudioRendered, native);
-    native->audioPlayer->setSpeed(playerConfig->speed); // 播放速率
-    native->audioPlayer->setVolume(playerConfig->volume); // 音量大小
+    native->audioPlayer->setSpeed(playerConfig.speed); // 播放速率
+    native->audioPlayer->setVolume(playerConfig.volume); // 音量大小
     native->audioPlayer->start();
 
     // 消费者注册 数据回调（视频播放）
@@ -443,17 +445,16 @@ void HelloPlayer::doSeek(void *userData)
 {
     auto native = reinterpret_cast<HelloPlayer *>(userData);
 
-    PlayRange *bufferRange = &native->decodeBufferRange;
-    PlayRange *currentRange = &native->currentPlayRange;
-    std::shared_ptr<HelloAVSync> &avSync = native->avSync;
-    std::shared_ptr<SeekAction> &seekAction = native->seekAction;
+//    PlayRange *bufferRange = &native->decodeBufferRange;
+    PlayRange &currentRange = native->currentPlayRange;
+    const std::shared_ptr<HelloAVSync> &avSync = native->avSync;
 
-    std::shared_ptr<HelloDataReader> &dataReader = native->dataReader;
-    std::shared_ptr<HelloAVDecoder> &audioDecoder = native->audioDecoder;
-    std::shared_ptr<HelloAudioPlayer> &audioPlayer = native->audioPlayer;
-    std::shared_ptr<HelloVideoPlayer> &videoPlayer = native->videoPlayer;
+//    std::shared_ptr<HelloDataReader> &dataReader = native->dataReader;
+//    std::shared_ptr<HelloAVDecoder> &audioDecoder = native->audioDecoder;
+//    std::shared_ptr<HelloAudioPlayer> &audioPlayer = native->audioPlayer;
+//    std::shared_ptr<HelloVideoPlayer> &videoPlayer = native->videoPlayer;
 
-    if (seekAction)
+    if (native->seekAction)
     {
         // 增加序列号之后，数据读取 - 音视频解码 - 音视频渲染 各模块都会有相应的处理
         int64_t nextSerial = avSync->getMasterClockSerial() + 1;
@@ -461,11 +462,11 @@ void HelloPlayer::doSeek(void *userData)
         avSync->reset(nextSerial);
 
         // 开始新的偏移
-        int64_t seekToUs = seekAction->seekToUs;
-        currentRange->seekToPtsUs(seekToUs);
+        int64_t seekToUs = native->seekAction->seekToUs;
+        currentRange.seekToPtsUs(seekToUs);
 
         // 可能只seek不播放
-        if (seekAction->autoPlay)
+        if (native->seekAction->autoPlay)
         {
             // 设置主时钟，控制是否暂停
             avSync->setPaused(false);
@@ -481,7 +482,7 @@ void HelloPlayer::doSeek(void *userData)
     }
 
     // 一次性消费掉
-    seekAction = nullptr;
+    native->seekAction = nullptr;
 }
 
 
@@ -525,14 +526,14 @@ bool HelloPlayer::loadNextPlayRange(bool seekOnce)
 {
     if (currentPlayRange.eof)
     {
-//        logger.i("Cannot load next play range cause end of file");
+        logger.i("Cannot load next play range because of EOF");
         return false;
     }
     if (dataReader && dataReader->isPrepared())
     {
         int64_t oldStartPtsUs = currentPlayRange.startUs;
         int64_t oldEndPtsUs = currentPlayRange.endUs;
-        int64_t serial = avSync->getMasterClock().serial;
+        int64_t serial = avSync->getMasterClockSerial();
         currentPlayRange.serial = serial; // 配置本次加载的序列号
 
         // 先计算出下一段播放的范围
@@ -557,26 +558,24 @@ bool HelloPlayer::loadNextPlayRange(bool seekOnce)
 
 std::shared_ptr<PlayRange> HelloPlayer::getNextPlayRange()
 {
-    std::shared_ptr<PlayRange> currRange = std::make_shared<PlayRange>();
-    currRange->copy(currentPlayRange);
-
     std::shared_ptr<PlayRange> nextRange = std::make_shared<PlayRange>();
+    nextRange->copy(currentPlayRange);
 
     // 取出外部设置的 缓存buffer时长
     int64_t bufferDurationUs = playConfig.bufferDurationUs;
 
     // 初次加载
-    if (currRange->startUs < 0)
+    if (currentPlayRange.startUs < 0)
     {
         // 第一次加载，起播时间为多媒体文件startOffsetTime时间+用户指定偏移时间
-        currRange->startUs = mediaInfo.startOffsetUs + userSeekUs;
+        nextRange->startUs = mediaInfo.startOffsetUs + userSeekUs;
     } else
     {
-        currRange->startUs = currRange->endUs;
+        nextRange->startUs = currentPlayRange.endUs; // 从seekTo(0)的话,这个endUs也是0
     }
-    currRange->endUs = currRange->startUs + bufferDurationUs;
+    nextRange->endUs = nextRange->startUs + bufferDurationUs;
 
-    // 控制边界
+    // 控制边界,使用主时钟的最大时长来控制
     bool useAudio = avSync->getMastClockType() == IAVMediaType::AUDIO;
     int64_t durationUs = useAudio ? mediaInfo.audioDurationUs : mediaInfo.videoDurationUs;
     int64_t maxEndUs = mediaInfo.startOffsetUs + durationUs;
@@ -585,15 +584,12 @@ std::shared_ptr<PlayRange> HelloPlayer::getNextPlayRange()
         // 直播流
         maxEndUs = INT64_MAX;
     }
-    logger.i("getNextPlayRange useAudio[%d] duration[%d]ms", useAudio, durationUs / 1000);
-    if (currRange->endUs > maxEndUs)
+//    logger.i("getNextPlayRange useAudio[%d] duration[%d]ms", useAudio, durationUs / 1000);
+    if (nextRange->endUs > maxEndUs)
     {
-        currRange->endUs = maxEndUs;
-        currRange->eof = true; // End of file
+        nextRange->endUs = maxEndUs;
+        nextRange->eof = true; // End of file
     }
-
-    // 把上面计算好的数据同步过来
-    nextRange->copy(*currRange);
 
     return nextRange;
 }
@@ -614,8 +610,8 @@ void HelloPlayer::updateBufferRange(const std::shared_ptr<IAVFrame> &frame)
     // 回调上层
     callback->onBufferPosition(decodeBufferRange.startUs, decodeBufferRange.endUs, durationUs);
 
-    logger.i("updateBufferRange start[%d]ms end[%d]ms",
-             decodeBufferRange.startUs / 1000, decodeBufferRange.endUs / 1000);
+//    logger.i("updateBufferRange start[%d]ms end[%d]ms",
+//             decodeBufferRange.startUs / 1000, decodeBufferRange.endUs / 1000);
 }
 
 void HelloPlayer::onPlayComplete()
@@ -646,11 +642,11 @@ void HelloPlayer::onPlayComplete()
 void HelloPlayer::onPacketRead(const std::shared_ptr<IAVPacket> &output, void *userdata)
 {
     auto native = reinterpret_cast<HelloPlayer *>(userdata);
-    Logger &logger = native->logger;
+//    Logger &logger = native->logger;
 
-    bool flushBuffers = output->flushBuffers;
-    int64_t startUs = output->getPtsUs();
-    int64_t durationUs = output->getDurationUs();
+//    bool flushBuffers = output->flushBuffers;
+//    int64_t startUs = output->getPtsUs();
+//    int64_t durationUs = output->getDurationUs();
     std::string typeStr;
     switch (output->type)
     {
@@ -673,8 +669,8 @@ void HelloPlayer::onPacketRead(const std::shared_ptr<IAVPacket> &output, void *u
         native->playerHandler->post(HelloPlayer::onSeekEnd, native);
     }
 
-    logger.i("onPacketRead[%s] packet.serial[%d] pts[%d]ms duration[%d]ms flush[%d]",
-             typeStr.c_str(), output->serial, startUs / 1000, durationUs / 1000, flushBuffers);
+//    logger.i("onPacketRead[%s] packet.serial[%d] pts[%d]ms duration[%d]ms flush[%d]",
+//             typeStr.c_str(), output->serial, startUs / 1000, durationUs / 1000, flushBuffers);
 }
 
 /**
@@ -685,7 +681,6 @@ void HelloPlayer::onPacketRead(const std::shared_ptr<IAVPacket> &output, void *u
 bool HelloPlayer::OnBeforeAudioDecode(const std::shared_ptr<IAVPacket> &packet, void *userdata)
 {
     auto native = reinterpret_cast<HelloPlayer *>(userdata);
-    Logger &logger = native->logger;
 
     HelloClock &masterClock = native->avSync->getMasterClock();
     std::shared_ptr<HelloAudioPlayer> player = native->audioPlayer;
@@ -706,7 +701,6 @@ bool HelloPlayer::OnBeforeAudioDecode(const std::shared_ptr<IAVPacket> &packet, 
 bool HelloPlayer::OnBeforeVideoDecode(const std::shared_ptr<IAVPacket> &packet, void *userdata)
 {
     auto native = reinterpret_cast<HelloPlayer *>(userdata);
-    Logger &logger = native->logger;
 
     HelloClock &masterClock = native->avSync->getMasterClock();
     std::shared_ptr<HelloVideoPlayer> player = native->videoPlayer;
@@ -727,10 +721,10 @@ bool HelloPlayer::OnBeforeVideoDecode(const std::shared_ptr<IAVPacket> &packet, 
 void HelloPlayer::onAudioDecoded(const std::shared_ptr<IAVFrame> &output, void *userdata)
 {
     auto native = reinterpret_cast<HelloPlayer *>(userdata);
-    Logger &logger = native->logger;
+//    Logger &logger = native->logger;
 
-    int64_t startUs = output->getPtsUs();
-    int64_t durationUs = output->getDurationUs();
+//    int64_t startUs = output->getPtsUs();
+//    int64_t durationUs = output->getDurationUs();
 
     // 是否为主时钟，更新缓冲区范围
     if (native->avSync->isMasterClock(IAVMediaType::AUDIO))
@@ -741,8 +735,8 @@ void HelloPlayer::onAudioDecoded(const std::shared_ptr<IAVFrame> &output, void *
     // 送入音频，准备播放
     native->audioPlayer->pushInputData(output);
 
-    logger.i("onAudioDecoded serial[%d] pts[%d]ms duration[%d]ms",
-             output->serial, startUs / 1000, durationUs / 1000);
+//    logger.i("onAudioDecoded serial[%d] pts[%d]ms duration[%d]ms",
+//             output->serial, startUs / 1000, durationUs / 1000);
 }
 
 /**
@@ -753,10 +747,10 @@ void HelloPlayer::onAudioDecoded(const std::shared_ptr<IAVFrame> &output, void *
 void HelloPlayer::onVideoDecoded(const std::shared_ptr<IAVFrame> &output, void *userdata)
 {
     auto native = reinterpret_cast<HelloPlayer *>(userdata);
-    Logger &logger = native->logger;
+//    Logger &logger = native->logger;
 
-    int64_t startUs = output->getPtsUs();
-    int64_t durationUs = output->getDurationUs();
+//    int64_t startUs = output->getPtsUs();
+//    int64_t durationUs = output->getDurationUs();
 
     // 是否为主时钟，更新缓冲区范围
     if (native->avSync->isMasterClock(IAVMediaType::VIDEO))
@@ -767,8 +761,8 @@ void HelloPlayer::onVideoDecoded(const std::shared_ptr<IAVFrame> &output, void *
     // 送入画面，准备播放
     native->videoPlayer->pushInputData(output);
 
-    logger.i("onVideoDecode frame.serial[%d] pts[%d]ms duration[%d]ms",
-             output->serial, startUs / 1000, durationUs / 1000);
+//    logger.i("onVideoDecode frame.serial[%d] pts[%d]ms duration[%d]ms",
+//             output->serial, startUs / 1000, durationUs / 1000);
 }
 
 /**
@@ -781,7 +775,7 @@ void HelloPlayer::onAudioRendered(const std::shared_ptr<IAVFrame> &output, void 
     auto native = reinterpret_cast<HelloPlayer *>(userdata);
     Hello::MediaInfo *mediaInfo = &native->mediaInfo;
 
-//    Logger &logger = native->logger;
+    Logger &logger = native->logger;
 //    int64_t startUs = output->getPtsUs();
 //    int64_t durationUs = output->getDurationUs();
 //    logger.i("onAudioRendered pts[%d]ms duration[%d]ms", startUs / 1000, durationUs / 1000);
@@ -790,6 +784,7 @@ void HelloPlayer::onAudioRendered(const std::shared_ptr<IAVFrame> &output, void 
     if (output->eof && mediaInfo->audioDurationUs >= mediaInfo->videoDurationUs)
     {
         native->onPlayComplete();
+        logger.i("onAudioRendered complete");
     }
 
 }
@@ -804,7 +799,7 @@ void HelloPlayer::onVideoRendered(const std::shared_ptr<IAVFrame> &output, void 
     auto native = reinterpret_cast<HelloPlayer *>(userdata);
     Hello::MediaInfo *mediaInfo = &native->mediaInfo;
 
-//    Logger &logger = native->logger;
+    Logger &logger = native->logger;
 //    int64_t startUs = output->getPtsUs();
 //    int64_t durationUs = output->getDurationUs();
 //    logger.i("onVideoRendered pts[%d]ms duration[%d]ms", startUs / 1000, durationUs / 1000);
@@ -813,6 +808,7 @@ void HelloPlayer::onVideoRendered(const std::shared_ptr<IAVFrame> &output, void 
     if (output->eof && mediaInfo->videoDurationUs >= mediaInfo->audioDurationUs)
     {
         native->onPlayComplete();
+        logger.i("onVideoRendered complete");
     }
 }
 
@@ -825,14 +821,14 @@ void HelloPlayer::onMasterClockUpdate(int64_t ptsUs, void *userdata)
 {
     auto native = reinterpret_cast<HelloPlayer *>(userdata);
 
-    Logger &logger = native->logger;
-    std::shared_ptr<HelloAVSync> &avSync = native->avSync;
-    Hello::MediaInfo &mediaInfo = native->mediaInfo;
-    PlayConfig *config = &native->playConfig;
-    PlayRange *bufferRange = &native->decodeBufferRange;
-    PlayRange *playRange = &native->currentPlayRange;
+//    Logger &logger = native->logger;
+    const std::shared_ptr<HelloAVSync> &avSync = native->avSync;
+    const Hello::MediaInfo &mediaInfo = native->mediaInfo;
+    PlayConfig &config = native->playConfig;
+    PlayRange &bufferRange = native->decodeBufferRange;
+    PlayRange &playRange = native->currentPlayRange;
 
-    std::shared_ptr<HelloPlayerCallback> &callback = native->callback;
+    const std::shared_ptr<HelloPlayerCallback> &callback = native->callback;
 
     // seek操作 加载数据 到 数据渲染，需要通知一下状态改变
     if (native->isSeeking())
@@ -857,19 +853,19 @@ void HelloPlayer::onMasterClockUpdate(int64_t ptsUs, void *userdata)
     }
     callback->onCurrentPosition(adjustPtsUs, durationUs);
 
-    size_t audioDecoderSize = native->audioDecoder->getQueueSize();
-    size_t videoDecoderSize = native->videoDecoder->getQueueSize();
-    size_t audioPlayerSize = native->audioPlayer->getQueueSize();
-    size_t videoPlayerSize = native->videoPlayer->getQueueSize();
-    logger.i("Victor123 audioDecoder[%d] videoDecoder[%d] audioPlayer[%d] videoPlayer[%d]", audioDecoderSize,
-             videoDecoderSize, audioPlayerSize, videoPlayerSize);
+//    size_t audioDecoderSize = native->audioDecoder->getQueueSize();
+//    size_t videoDecoderSize = native->videoDecoder->getQueueSize();
+//    size_t audioPlayerSize = native->audioPlayer->getQueueSize();
+//    size_t videoPlayerSize = native->videoPlayer->getQueueSize();
+//    logger.i("Victor123 audioDecoder[%d] videoDecoder[%d] audioPlayer[%d] videoPlayer[%d]", audioDecoderSize,
+//             videoDecoderSize, audioPlayerSize, videoPlayerSize);
 
 //    logger.i("on master clock update adjustPts[%d]ms useAudio[%d] duration[%d]ms",
 //             adjustPtsUs / 1000, useAudio, durationUs / 1000);
 
     // 判断是否需要预加载数据
     // 先判断
-    bool dataReading = bufferRange->endUs < playRange->endUs;
+    bool dataReading = bufferRange.endUs < playRange.endUs;
     if (dataReading)
     {
         // 数据正在加载中，暂时不判断，如果一直卡，需要检查数据读取部分时候有问题
@@ -877,12 +873,12 @@ void HelloPlayer::onMasterClockUpdate(int64_t ptsUs, void *userdata)
     }
 
     // 这个水位线表示预加载时机
-    int64_t bufferDurationUs = bufferRange->endUs - bufferRange->startUs;
-    int64_t waterLevel = bufferRange->startUs + bufferDurationUs * config->bufferLoadMoreFactor;
+    int64_t bufferDurationUs = bufferRange.endUs - bufferRange.startUs;
+    int64_t waterLevel = bufferRange.startUs + bufferDurationUs * config.bufferLoadMoreFactor;
     if (ptsUs >= waterLevel)
     {
-        native->logger.i("preload next play range pts[%d]ms waterLevel[%d]ms", ptsUs / 1000,
-                         waterLevel / 1000);
+        native->logger.i("preload next play range pts[%d]ms waterLevel[%d]ms",
+                         ptsUs / 1000, waterLevel / 1000);
         // 加载更多数据
         if (native->loadNextPlayRange())
         {

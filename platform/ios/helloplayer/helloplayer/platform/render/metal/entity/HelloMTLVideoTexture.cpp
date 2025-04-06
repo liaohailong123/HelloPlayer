@@ -16,6 +16,7 @@ HelloMTLVideoTexture::HelloMTLVideoTexture(std::shared_ptr<HelloVideoFrame> fram
 
 HelloMTLVideoTexture::~HelloMTLVideoTexture()
 {
+    frame = nullptr;
 //    logger.i("HelloMTLVideoTexture::~HelloMTLVideoTexture(%p)", this);
 }
 

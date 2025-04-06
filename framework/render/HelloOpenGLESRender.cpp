@@ -1,12 +1,8 @@
 //
-//  HelloOpenGLESRender.cpp
-//  helloplayer
-//
-//  Created by 廖海龙 on 2025/3/21.
+// Created by liaohailong on 2025/2/27.
 //
 
 #include "HelloOpenGLESRender.hpp"
-
 
 
 HelloOpenGLESRender::HelloOpenGLESRender(AVPixelFormat _format) :
@@ -14,8 +10,8 @@ HelloOpenGLESRender::HelloOpenGLESRender(AVPixelFormat _format) :
         prepared(false), glContext(nullptr), filterPacket(nullptr), filterChain(new GLFilterChain())
 {
     // 创建EGL环境
-    glContext = std::make_shared<HelloEAGLContext>();
-    glContext->init(nullptr);
+    glContext = std::make_shared<HelloEGLContext>();
+    glContext->init(EGL_NO_CONTEXT);
 
     logger.i("HelloOpenGLESRender::HelloOpenGLESRender(%p)", this);
 }
@@ -141,7 +137,8 @@ void HelloOpenGLESRender::initProjectMat4()
             glm::vec3(0.0f, 1.0f, 0.0f)
     );
 
-    // 先作用的矩阵，放在左边:  PRE * MAT * POST
+    // 矩阵之间相乘，是左到右执行（结合律）
+    // 矩阵对向量的作用，是从右到左（最右的先作用）
     prjMat4 = projectMat * viewMat;
 }
 
@@ -175,7 +172,7 @@ bool HelloOpenGLESRender::isPrepared()
 }
 
 /**
- * @param f 更新像素格式
+ * @param format 更新像素格式
  * @return true表示更新成功
  */
 bool HelloOpenGLESRender::setAVPixelFormat(AVPixelFormat f)
@@ -238,7 +235,7 @@ bool HelloOpenGLESRender::clearColor(float r, float g, float b, float a)
     if (!glContext || !prepared)return false;
     logger.i("HelloOpenGLESRender::clearColor(%p)", this);
 
-    // 多surface同时渲染
+    // 多surface渲染
     std::vector<uint64_t> keys;
     glContext->getSurfaceKeys(&keys);
     glContext->setClearColor(r, g, b, a);
@@ -263,9 +260,10 @@ bool HelloOpenGLESRender::draw(std::shared_ptr<HelloVideoFrame> frame)
 {
     if (!glContext || !prepared)return false;
 
-    // 多surface同时渲染
+    // 多surface渲染
     std::vector<uint64_t> keys;
     glContext->getSurfaceKeys(&keys);
+    logger.i("HelloOpenGLESRender::draw keys.size[%d]",keys.size());
     for (uint64_t key: keys)
     {
 

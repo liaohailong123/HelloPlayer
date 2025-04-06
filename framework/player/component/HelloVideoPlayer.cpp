@@ -6,7 +6,7 @@
 
 #include <utility>
 
-FILE *yuvFile;
+//FILE *yuvFile;
 
 HelloVideoPlayer::HelloVideoPlayer(std::shared_ptr<HelloAVSync> avSync) :
         HelloProcessor("HelloVideoPlayer"), prepared(false), mutex(), properties(nullptr),
@@ -33,7 +33,7 @@ HelloVideoPlayer::~HelloVideoPlayer()
     logger.i("HelloVideoPlayer::~HelloVideoPlayer(%p)", this);
 }
 
-void HelloVideoPlayer::prepare(const std::shared_ptr<VideoProperties> &p, PlayConfig _config)
+void HelloVideoPlayer::prepare(const std::shared_ptr<VideoProperties> &p, const PlayConfig &_config)
 {
     this->properties = p;
     this->config = _config;
@@ -50,7 +50,7 @@ void HelloVideoPlayer::prepare(const std::shared_ptr<VideoProperties> &p, PlayCo
 void HelloVideoPlayer::initRender(void *userdata)
 {
     auto native = reinterpret_cast<HelloVideoPlayer *>(userdata);
-    std::shared_ptr<VideoProperties> p = native->properties;
+    const std::shared_ptr<VideoProperties> &p = native->properties;
 
     auto format = static_cast<AVPixelFormat>(p->colorFormat);
     if (native->render)
@@ -237,30 +237,30 @@ bool HelloVideoPlayer::onProcess(std::shared_ptr<InputDataCtx> inputData)
     }
 }
 
-void save_yuv420p(AVFrame *frame, FILE *file) {
-    
-    int width = frame->width;
-    int height = frame->height;
+//void save_yuv420p(AVFrame *frame, FILE *file) {
+//    
+//    int width = frame->width;
+//    int height = frame->height;
+//
+//    // 写入Y平面数据
+//    for (int i = 0; i < height; i++) {
+//        fwrite(frame->data[0] + i * frame->linesize[0], 1, width, file);
+//    }
+//    // 写入U平面数据
+//    for (int i = 0; i < height / 2; i++) {
+//        fwrite(frame->data[1] + i * frame->linesize[1], 1, width / 2, file);
+//    }
+//    // 写入V平面数据
+//    for (int i = 0; i < height / 2; i++) {
+//        fwrite(frame->data[2] + i * frame->linesize[2], 1, width / 2, file);
+//    }
+//
+//}
 
-    // 写入Y平面数据
-    for (int i = 0; i < height; i++) {
-        fwrite(frame->data[0] + i * frame->linesize[0], 1, width, file);
-    }
-    // 写入U平面数据
-    for (int i = 0; i < height / 2; i++) {
-        fwrite(frame->data[1] + i * frame->linesize[1], 1, width / 2, file);
-    }
-    // 写入V平面数据
-    for (int i = 0; i < height / 2; i++) {
-        fwrite(frame->data[2] + i * frame->linesize[2], 1, width / 2, file);
-    }
-
-}
-
-
+//int64_t lastDrawTimestampsMs = 0;
 void HelloVideoPlayer::draw(std::shared_ptr<IAVFrame> &frame)
 {
-    if (render->isPrepared() && prepared)
+    if (render && render->isPrepared() && prepared)
     {
         // 软件转换像素格式
         AVPixelFormat format = render->getAVPixelFormat();
@@ -289,6 +289,14 @@ void HelloVideoPlayer::draw(std::shared_ptr<IAVFrame> &frame)
 //        int64_t startMs = TimeUtil::getCurrentTimeMs();
         render->draw(image);
 //        int64_t costMs = TimeUtil::getCurrentTimeMs() - startMs;
+//        int64_t currMs = TimeUtil::getCurrentTimeMs();
+//        if (lastDrawTimestampsMs >= 0)
+//        {
+//            int64_t intervalMs = currMs - lastDrawTimestampsMs;
+//            float fps = 1000.0 / intervalMs;
+//            logger.i("native->draw(frame) cost[%d]ms fps[%.0f] interval[%d]ms", costMs, fps, intervalMs);
+//        }
+//        lastDrawTimestampsMs = currMs;
 //        logger.i("native->draw(frame) cost[%d]ms", costMs);
         lastFrame = image;
     }

@@ -11,7 +11,6 @@
 
 
 // iOS平台实现
-#include "../render/opengl/HelloOpenGLESRender.hpp"
 #include "../render/metal/HelloMetalRender.hpp"
 #include "../render/HelloAudioUnitRender.hpp"
 #include "HelloiOSCallback.hpp"
@@ -34,13 +33,6 @@ std::shared_ptr<HelloAVDecoderCore> HelloDeviceRegister::onCreateHelloAVDecoderC
  */
 std::shared_ptr<HelloVideoRender> HelloDeviceRegister::onCreateHelloVideoRender(const HelloVideoRender::VideoRenderCtx &ctx)
 {
-    // 苹果生态中,图形API全面推Metal,优先使用Metal
-    // 实际测试中发现,iOS上的OpenGLES渲染效率存在耗时高问题,另外接口支持不全
-    if (ctx.config.renderApi == RenderApi::OPENGL_ES) {
-        return std::make_shared<HelloOpenGLESRender>(ctx.format);
-    } else if (ctx.config.renderApi == RenderApi::METAL) {
-        return std::make_shared<HelloMetalRender>(ctx.format);
-    }
     return std::make_shared<HelloMetalRender>(ctx.format);
 }
 

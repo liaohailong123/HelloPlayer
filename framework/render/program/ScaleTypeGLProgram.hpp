@@ -5,7 +5,7 @@
 #ifndef HELLOPLAYER_SCALETYPEGLPROGRAM_HPP
 #define HELLOPLAYER_SCALETYPEGLPROGRAM_HPP
 
-#include "IGLProgram.hpp"
+#include "Sampler2DProgram.hpp"
 
 /**
  * Author: liaohailong
@@ -13,7 +13,7 @@
  * Time: 12:36
  * Description: 简单几何处理 sampler2d 纹理 的着色器
  **/
-class ScaleTypeGLProgram : public IGLProgram {
+class ScaleTypeGLProgram : public Sampler2DProgram {
 public:
     typedef struct {
         int left;
@@ -48,17 +48,7 @@ public:
 
     ~ScaleTypeGLProgram() override;
 
-    std::string getVertexSource() override;
-
-    std::string getFragmentSource() override;
-
-    void onProgramCreated(GLuint program) override;
-
-    void setTexture(GLuint *textures, int count) override;
-
-    void setMirror(bool hMirror, bool vMirror) override;
-
-    void draw(int width, int height, float projectMat[4 * 4]) override;
+    void onDraw(int width, int height, float projectMat[16]) override;
 
     void setScaleType(ScaleType type);
 
@@ -70,46 +60,7 @@ private:
     static glm::mat4 makeCropCenterMat4(const std::shared_ptr<Rect> &src,
                                  const std::shared_ptr<Rect> &dst);
 
-private: // GLSL变量
-    uniform mvpM;
-    attribute position;
-    attribute coordinate;
-    uniform texture; // sampler2D
-    uniform hMirror;
-    uniform vMirror;
-
 private: // 传入着色器的变量
-    float vertexPos[18] = {
-            -1.0f, -1.0f, 0.0f,
-            1.0f, -1.0f, 0.0f,
-            1.0f, 1.0f, 0.0f,
-            1.0f, 1.0f, 0.0f,
-            -1.0f, 1.0f, 0.0f,
-            -1.0f, -1.0f, 0.0f
-    };
-    // Android系统加载纹理会倒置画面，这里的纹理坐标点做了兼容处理
-    float texturePos[12] = {
-            0.0f, 1.0f,
-            1.0f, 1.0f,
-            1.0f, 0.0f,
-            1.0f, 0.0f,
-            0.0f, 0.0f,
-            0.0f, 1.0f
-    };
-
-    /**
-     * 纹理id
-     */
-    GLuint textureId;
-
-    /**
-     * 水平镜像
-     */
-    bool hMirrorVal;
-    /**
-     * 垂直镜像
-     */
-    bool vMirrorVal;
     /**
      * 模型矩阵
      */

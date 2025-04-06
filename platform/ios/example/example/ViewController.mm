@@ -37,6 +37,8 @@
         
         [self.buttonGrid.topAnchor constraintEqualToAnchor:self.titleLabel.bottomAnchor constant:20],
         [self.buttonGrid.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
+        [self.buttonGrid.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:20],
+        [self.buttonGrid.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-20],
         
         [self.volumeController.topAnchor constraintEqualToAnchor:self.buttonGrid.bottomAnchor],
         [self.volumeController.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:20],
@@ -76,7 +78,7 @@
     rowStack.spacing = 10; // 按钮间距
     [self.buttonGrid addArrangedSubview:rowStack];
     
-    // 软解H264(网络)
+    // 软解H264(本地23.98fps)
     UIButton *playBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     [playBtn setTitle:@"软解H264(本地)" forState:UIControlStateNormal];
     [playBtn setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
@@ -89,7 +91,7 @@
     [playBtn.widthAnchor constraintLessThanOrEqualToConstant:150].active = YES;
     [rowStack addArrangedSubview:playBtn];
     
-    // 软解AV1(本地)
+    // 软解AV1(本地30fps)
     playBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     [playBtn setTitle:@"软解AV1(本地)" forState:UIControlStateNormal];
     [playBtn setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
@@ -102,7 +104,7 @@
     [playBtn.widthAnchor constraintLessThanOrEqualToConstant:150].active = YES;
     [rowStack addArrangedSubview:playBtn];
     
-    // 软解H264(直播)
+    // 软解H264(直播30fps)
     playBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     [playBtn setTitle:@"软解H264(直播)" forState:UIControlStateNormal];
     [playBtn setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
@@ -125,7 +127,7 @@
     rowStack.spacing = 10; // 按钮间距
     [self.buttonGrid addArrangedSubview:rowStack];
     
-    // 硬解H264(网络)
+    // 硬解H264(网络29.97fps)
     playBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     [playBtn setTitle:@"硬解H264(网络)" forState:UIControlStateNormal];
     [playBtn setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
@@ -138,9 +140,9 @@
     [playBtn.widthAnchor constraintLessThanOrEqualToConstant:150].active = YES;
     [rowStack addArrangedSubview:playBtn];
     
-    // 硬解H265(网络)
+    // 硬解H265(网络50fps)
     playBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    [playBtn setTitle:@"硬解H265(网络)" forState:UIControlStateNormal];
+    [playBtn setTitle:@"硬解H265(网络50fps)" forState:UIControlStateNormal];
     [playBtn setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
     [playBtn addTarget:self action:@selector(onPrepareHard2) forControlEvents:UIControlEventTouchUpInside];
     playBtn.translatesAutoresizingMaskIntoConstraints = NO;
@@ -151,7 +153,7 @@
     [playBtn.widthAnchor constraintLessThanOrEqualToConstant:150].active = YES;
     [rowStack addArrangedSubview:playBtn];
     
-    // 硬解H264(直播)
+    // 硬解H264(直播30fps)
     playBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     [playBtn setTitle:@"硬解H264(直播)" forState:UIControlStateNormal];
     [playBtn setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];

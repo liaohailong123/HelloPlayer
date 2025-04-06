@@ -90,6 +90,53 @@ GLuint GLSLUtil::textureAttach2Fbo(GLuint texture) {
     return framebuffer;
 }
 
+
+bool GLSLUtil::generateVAOVBO(float *sVertices,int count, GLuint vertexIndex, GLuint textureIndex, GLuint &_vao, GLuint &_vbo)
+{
+
+    GLuint vao, vbo;
+    
+    // 创建 VAO + VBO
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(sVertices)*count, sVertices, GL_STATIC_DRAW);
+
+    // 顶点位置属性 layout(location = 0)
+    glVertexAttribPointer(vertexIndex, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void *)0);
+    glEnableVertexAttribArray(vertexIndex);
+
+    // 纹理坐标属性 layout(location = 1)
+    glVertexAttribPointer(textureIndex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(textureIndex);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    _vao = vao;
+    _vbo = vbo;
+    
+    return true;
+}
+
+void GLSLUtil::deleteVAOVBO(GLuint &vao, GLuint &vbo)
+{
+    // 删除 VBO 和 VAO
+    if (vbo > 0)
+    {
+        glDeleteVertexArrays(1, &vao);
+    }
+    
+    if (vao > 0)
+    {
+        glDeleteBuffers(1, &vbo);
+    }
+
+    vao = 0;
+    vbo = 0;
+}
+
 /**
  * 删除FBO
  * @param framebuffer 渲染缓冲区

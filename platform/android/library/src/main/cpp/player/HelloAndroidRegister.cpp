@@ -7,9 +7,9 @@
 #include "framework/player/HelloPlayer.hpp"
 #include "framework/player/device/HelloDeviceRegister.hpp"
 #include "framework/player/device/HelloAVDecoderFFmpeg.hpp"
+#include "framework/render/HelloOpenGLESRender.hpp"
 
 // Android平台实现
-#include "../render/HelloOpenGLESRender.hpp"
 #include "../render/HelloOboAudioRender.hpp"
 #include "../player/HelloAndroidCallback.hpp"
 

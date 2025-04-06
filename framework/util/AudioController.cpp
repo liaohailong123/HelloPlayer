@@ -280,6 +280,7 @@ AVFrame *AudioController::getFrame()
 
     if (ret < 0)
     {
+        av_frame_free(&avFrame); // 添加这行
 //        FFUtil::av_print_error(logger, ret, "av_buffersink_get_frame error");
         return nullptr;
     }
@@ -312,6 +313,11 @@ AVFilterContext *AudioController::createFilter(const char *name, const char *opt
     }
     const AVFilter *filter = avfilter_get_by_name(name);
     AVFilterContext *filterContext = avfilter_graph_alloc_filter(filterGraph, filter, name);
+    if (!filterContext)
+    {
+        logger.i("filterContext is nullptr: %s", name);
+        return nullptr;
+    }
     int err = avfilter_init_str(filterContext, opt);
     if (err < 0)
     {

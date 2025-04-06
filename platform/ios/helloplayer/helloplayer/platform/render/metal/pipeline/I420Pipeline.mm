@@ -62,13 +62,13 @@ void I420Pipeline::setTextureData(const std::shared_ptr<MTLTextureData> &image)
     }
     
     if (!textureY) {
-        textureY = PipelineUtil::genrateTexure2D(ctx, yWidth, yHeight, MTLPixelFormatR8Unorm);
+        textureY = PipelineUtil::generateTexture2D(ctx, yWidth, yHeight, MTLPixelFormatR8Unorm);
     }
     if (!textureU) {
-        textureU = PipelineUtil::genrateTexure2D(ctx, uvWidth, uvHeight, MTLPixelFormatR8Unorm);
+        textureU = PipelineUtil::generateTexture2D(ctx, uvWidth, uvHeight, MTLPixelFormatR8Unorm);
     }
     if (!textureV) {
-        textureV = PipelineUtil::genrateTexure2D(ctx, uvWidth, uvHeight, MTLPixelFormatR8Unorm);
+        textureV = PipelineUtil::generateTexture2D(ctx, uvWidth, uvHeight, MTLPixelFormatR8Unorm);
     }
     
     // 硬件解码,返回的buffer可能是一个正方形

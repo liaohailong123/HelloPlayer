@@ -8,7 +8,7 @@
 #include "PipelineUtil.hpp"
 
 
-id<MTLTexture> PipelineUtil::genrateTexure2D(std::shared_ptr<HelloMTLContext> ctx, int width, int height,
+id<MTLTexture> PipelineUtil::generateTexture2D(std::shared_ptr<HelloMTLContext> ctx, int width, int height,
                                            MTLPixelFormat pixelFormat, int rotation)
 {
     int fbo_w;

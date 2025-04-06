@@ -7,7 +7,7 @@
 
 #include "Texture2DPipeline.hpp"
 
-Texture2DPipeline::Texture2DPipeline(): MTLPipeline("Texture2DPipeline"), texture(nil)
+Texture2DPipeline::Texture2DPipeline(): MTLPipeline("Texture2DPipeline")
 {
     logger.i("Texture2DPipeline::Texture2DPipeline(%p)", this);
 }
@@ -24,11 +24,6 @@ std::string Texture2DPipeline::getVertextFuncName()
 std::string Texture2DPipeline::getFragmentFuncName()
 {
     return "textureFragmentShader";
-}
-
-void Texture2DPipeline::setTexture(const std::vector<id<MTLTexture>> &textures)
-{
-    this->texture = textures[0];
 }
 
 bool Texture2DPipeline::draw(float projectMat[16])

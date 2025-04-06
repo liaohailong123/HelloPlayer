@@ -8,24 +8,25 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
-#include <stdio.h>
+#include <cstdio>
 #include <chrono>
+#include <memory>
 
 #include "HelloEGLContext.hpp"
-#include "framework/player/device/HelloVideoRender.hpp"
-#include "framework/log/Logger.hpp"
-#include "framework/render/program/GLSLUtil.hpp"
-#include "framework/render/program/IGLProgram.hpp"
-#include "framework/render/program/YUVGLProgram.hpp"
-#include "framework/render/program/NV12GLProgram.hpp"
-#include "framework/render/entity/HelloVideoTexture.hpp"
+#include "../player/device/HelloVideoRender.hpp"
+#include "../log/Logger.hpp"
+#include "../render/program/GLSLUtil.hpp"
+#include "../render/program/IGLProgram.hpp"
+#include "../render/program/YUVGLProgram.hpp"
+#include "../render/program/NV12GLProgram.hpp"
+#include "../render/entity/HelloVideoTexture.hpp"
 
 // 过滤器
-#include "framework/render/filter/GLFilterChain.hpp"
-#include "framework/render/filter/GLFilterPacket.hpp"
-#include "framework/render/filter/impl/Input2Sampler2d.hpp" // 输入滤镜
-#include "framework/render/filter/impl/ScaleTypeFilter.hpp" // 几何处理: FitCenter
-#include "framework/render/filter/impl/Sampler2D2Surface.hpp" // 输入滤镜
+#include "../render/filter/GLFilterChain.hpp"
+#include "../render/filter/GLFilterPacket.hpp"
+#include "../render/filter/impl/Input2Sampler2d.hpp" // 输入滤镜
+#include "../render/filter/impl/ScaleTypeFilter.hpp" // 几何处理: FitCenter
+#include "../render/filter/impl/Sampler2D2Surface.hpp" // 输入滤镜
 
 /**
  * create by liaohailong
@@ -56,7 +57,7 @@ public:
     bool setAVPixelFormat(AVPixelFormat format) override;
 
     AVPixelFormat getAVPixelFormat() override;
-    
+
     /**
      * @param surface 添加画面渲染缓冲区
      * @return true表示操作成功
@@ -97,7 +98,7 @@ private:
 
 protected:
     glm::mat4 prjMat4; // 项目矩阵：默认正交投影
-    
+
     AVPixelFormat format;
 
     std::atomic<bool> prepared; // 是否已经初始化完成

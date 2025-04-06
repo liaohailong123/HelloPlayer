@@ -232,6 +232,7 @@ bool HelloDataReader::streamSeek(int64_t startOffsetPtsUs)
 
     if (ifmt_ctx)
     {
+        // 有些封装文件存在 起始偏移值 startOffsetUs 上层我都是用 durationUs*progress 得到的seek时间,并未包括 startOffsetUs
         int64_t adjustStartUs = ifmt_ctx->start_time + startOffsetPtsUs;
         logger.i("streamSeek[%d]ms start", adjustStartUs / 1000);
 
@@ -240,9 +241,7 @@ bool HelloDataReader::streamSeek(int64_t startOffsetPtsUs)
 //        int ret = av_seek_frame(ifmt_ctx, -1, adjustStartUs, 0); // ffplay.c 这里是默认0
         if (ret < 0)
         {
-            char msg[1024] = {0};
-            sprintf(msg, "avformat_seek_file[%ld]ms error", static_cast<long>(adjustStartUs / 1000));
-            FFUtil::av_print_error(logger, ret, msg);
+            FFUtil::av_print_error(logger, ret, "avformat_seek_file error");
             return false;
         }
         logger.i("streamSeek[%d]ms success", adjustStartUs / 1000);
@@ -291,7 +290,7 @@ int64_t HelloDataReader::getDurationUs(int64_t durationPts, AVRational timeBase)
 
 void HelloDataReader::sendFlushBufferPacket(IAVMediaType type)
 {
-    HelloClock &masterClock = avSync->getMasterClock();
+    const HelloClock &masterClock = avSync->getMasterClock();
     std::shared_ptr<IAVPacket> output = std::make_shared<IAVPacket>();
     output->type = type;
     output->serial = masterClock.serial;
@@ -301,7 +300,7 @@ void HelloDataReader::sendFlushBufferPacket(IAVMediaType type)
 
 void HelloDataReader::sendEofBufferPacket(IAVMediaType type)
 {
-    HelloClock &masterClock = avSync->getMasterClock();
+    const HelloClock &masterClock = avSync->getMasterClock();
     std::shared_ptr<IAVPacket> output = std::make_shared<IAVPacket>();
     output->type = type;
     output->serial = masterClock.serial;
@@ -319,9 +318,9 @@ bool HelloDataReader::onProcess(std::shared_ptr<InputDataCtx> inputData)
     std::unique_lock<std::mutex> locker(mutex);
 
     HelloClock &masterClock = avSync->getMasterClock();
-    std::shared_ptr<PlayRange> &range = inputData->data;
-    logger.i("onProcess is start range[%d,%d]ms",
-             range->startUs / 1000, range->endUs / 1000);
+    const std::shared_ptr<PlayRange> &range = inputData->data;
+    logger.i("onProcess is start range[%d,%d]ms seek[%d]",
+             range->startUs / 1000, range->endUs / 1000, range->seekOnce);
 
     if (range->seekOnce)
     {
@@ -395,6 +394,8 @@ bool HelloDataReader::onProcess(std::shared_ptr<InputDataCtx> inputData)
             } else
             {
                 output->type = UNKNOWN;
+                logger.i("pkt type is Unknown");
+                break;
             }
 
             // 将packet的buffer内容迁移给外部
@@ -425,6 +426,7 @@ bool HelloDataReader::onProcess(std::shared_ptr<InputDataCtx> inputData)
         } else
         {
             FFUtil::av_print_error(logger, ret, "av_read_frame error");
+            break;
         }
     }
 

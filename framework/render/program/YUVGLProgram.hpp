@@ -5,7 +5,7 @@
 #ifndef HELLOGL_YUVGLPROGRAM_HPP
 #define HELLOGL_YUVGLPROGRAM_HPP
 
-#include "IGLProgram.hpp"
+#include "Sampler2DProgram.hpp"
 
 extern "C"
 {
@@ -18,14 +18,12 @@ extern "C"
  * 2024/6/15 12:47
  * desc: 渲染 sampler 2D 纹理，YUV420/422P
  */
-class YUVGLProgram : public IGLProgram
+class YUVGLProgram : public Sampler2DProgram
 {
 public:
     explicit YUVGLProgram();
 
     ~YUVGLProgram() override;
-
-    std::string getVertexSource() override;
 
     std::string getFragmentSource() override;
 
@@ -38,7 +36,7 @@ public:
 
     void setMirror(bool hMirror, bool vMirror) override;
 
-    void draw(int width, int height, float projectMat[16]) override;
+    void onDraw(int width, int height, float projectMat[16]) override;
 
 protected:
     static void bindYUVTexture(GLuint texture, int width, int height, GLint lineSize, const void *pixels);
@@ -55,23 +53,6 @@ private: // GLSL变量
 
 
 private: // 传入着色器的变量
-    float vertexPos[18] = {
-            -1.0f, -1.0f, 0.0f,
-            1.0f, -1.0f, 0.0f,
-            1.0f, 1.0f, 0.0f,
-            1.0f, 1.0f, 0.0f,
-            -1.0f, 1.0f, 0.0f,
-            -1.0f, -1.0f, 0.0f
-    };
-    float texturePos[12] = {
-            0.0f, 1.0f,
-            1.0f, 1.0f,
-            1.0f, 0.0f,
-            1.0f, 0.0f,
-            0.0f, 0.0f,
-            0.0f, 1.0f
-    };
-
     /**
      * sampler2d纹理id
      */

@@ -6,9 +6,9 @@
 // HelloPlayer通用层代码
 #include "framework/player/device/HelloDeviceRegister.hpp"
 #include "framework/player/device/HelloAVDecoderFFmpeg.hpp"
+#include "framework/render/HelloOpenGLESRender.hpp"
 
 // 鸿蒙平台实现
-#include "../render/HelloOpenGLESRender.hpp"
 #include "../render/HelloOhosAudioRender.hpp"
 #include "HelloOhosCallback.hpp"
 #include "device/HelloVideoDecoderOhos.hpp"
@@ -19,7 +19,6 @@
 std::shared_ptr<HelloAVDecoderCore> HelloDeviceRegister::onCreateHelloAVDecoderCore()
 {
     return std::make_shared<HelloVideoDecoderOhos>();
-    
 }
 
 /**

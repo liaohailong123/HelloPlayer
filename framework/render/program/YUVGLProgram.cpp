@@ -4,8 +4,7 @@
 
 #include "YUVGLProgram.hpp"
 
-YUVGLProgram::YUVGLProgram()
-        : IGLProgram("YUVGLProgram"), mvpM(-1), position(-1), coordinate(-1), y_tex(-1), u_tex(-1),
+YUVGLProgram::YUVGLProgram(): Sampler2DProgram("YUVGLProgram"), mvpM(-1), position(-1), coordinate(-1), y_tex(-1), u_tex(-1),
           v_tex(-1), textureYId(0), textureUId(0), textureVId(0), textureWidth(0), textureHeight(0)
 {
     logger.i("YUVGLProgram::YUVGLProgram(%p)", this);
@@ -17,49 +16,31 @@ YUVGLProgram::~YUVGLProgram()
     logger.i("YUVGLProgram::~YUVGLProgram(%p)", this);
 }
 
-std::string YUVGLProgram::getVertexSource()
-{
-    const char source[] = R"(
-#version 100
-uniform mat4 u_mvpM;
-attribute vec3 i_position;
-attribute vec2 i_coordinate;
-varying vec2 v_coordinate;
-
-void main()
-{
-    v_coordinate = i_coordinate;
-    gl_Position = u_mvpM * vec4(i_position,1.0);
-}
-    )";
-    return source;
-}
-
 std::string YUVGLProgram::getFragmentSource()
 {
-    const char source[] = R"(
-#version 100
+    const char source[] = R"(#version 300 es
 precision mediump float;
 
-varying vec2 v_coordinate;
+in vec2 v_coordinate;
 
 uniform sampler2D y_tex;
 uniform sampler2D u_tex;
 uniform sampler2D v_tex;
 
+out vec4 fragColor; // 输出颜色
 
 void main()
 {
 
-    float y = texture2D(y_tex, v_coordinate).r;
-    float u = texture2D(u_tex, v_coordinate).r - 0.5;
-    float v = texture2D(v_tex, v_coordinate).r - 0.5;
+    float y = texture(y_tex, v_coordinate).r;
+    float u = texture(u_tex, v_coordinate).r - 0.5;
+    float v = texture(v_tex, v_coordinate).r - 0.5;
 
     float r = y + 1.402 * v;
     float g = y - 0.344 * u - 0.714 * v;
     float b = y + 1.772 * u;
 
-    gl_FragColor = vec4(r, g, b, 1.0);
+    fragColor = vec4(r, g, b, 1.0);
 }
     )";
 
@@ -75,6 +56,7 @@ void YUVGLProgram::onProgramCreated(GLuint program)
     u_tex = glGetUniformLocation(program, "u_tex");
     v_tex = glGetUniformLocation(program, "v_tex");
 
+    GLSLUtil::generateVAOVBO(sVertices, 20, position, coordinate, vao, vbo);
 }
 
 
@@ -163,19 +145,8 @@ void YUVGLProgram::setMirror(bool hMirror, bool vMirror)
     // 暂不支持
 }
 
-void YUVGLProgram::draw(int width, int height, float projectMat[4 * 4])
+void YUVGLProgram::onDraw(int width, int height, float projectMat[16])
 {
-    // 确认视口位置和大小，可用作局部渲染
-    glViewport(0, 0, width, height);
-
-    // 绑定顶点坐标数组
-    glEnableVertexAttribArray(position);
-    glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), vertexPos);
-
-    // 绑定纹理坐标数组
-    glEnableVertexAttribArray(coordinate);
-    glVertexAttribPointer(coordinate, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), texturePos);
-
     // 绑定纹理
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureYId);
@@ -206,14 +177,6 @@ void YUVGLProgram::draw(int width, int height, float projectMat[4 * 4])
 
     // 第三个参数，transpose 表示是否需要 转置矩阵：将行与列交换（对称矩阵）
     glUniformMatrix4fv(mvpM, 1, GL_FALSE, glm::value_ptr(mvpMat4));
-
-    // 绘制图元
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-
-    // 关闭顶点输入
-    glDisableVertexAttribArray(position);
-    glDisableVertexAttribArray(coordinate);
-
 }
 
 

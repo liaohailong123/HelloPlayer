@@ -26,7 +26,7 @@ void HelloAVSync::setMastClockType(IAVMediaType mediaType)
 /**
  * @return 获取 当前 时间轴 的媒体类型
  */
-IAVMediaType HelloAVSync::getMastClockType()
+const IAVMediaType &HelloAVSync::getMastClockType()
 {
     return type;
 }
@@ -35,12 +35,12 @@ IAVMediaType HelloAVSync::getMastClockType()
  * @param mediaType 判断该类型是否为 主时钟
  * @return true表示为主时钟
  */
-bool HelloAVSync::isMasterClock(IAVMediaType mediaType)
+bool HelloAVSync::isMasterClock(const IAVMediaType &mediaType)
 {
     return getMastClockType() == mediaType;
 }
 
-HelloClock &HelloAVSync::getClockByType(IAVMediaType mediaType)
+HelloClock &HelloAVSync::getClockByType(const IAVMediaType &mediaType)
 {
     // 暂时只处理 这两种时钟
     if (mediaType == AUDIO)

@@ -35,19 +35,19 @@ public:
     /**
      * @return 获取 当前 时间轴 的媒体类型
      */
-    IAVMediaType getMastClockType();
+    const IAVMediaType &getMastClockType();
 
     /**
      * @param mediaType 判断该类型是否为 主时钟
      * @return true表示为主时钟
      */
-    bool isMasterClock(IAVMediaType mediaType);
+    bool isMasterClock(const IAVMediaType &mediaType);
 
     /**
      * @param mediaType 获取对应的时钟
      * @return
      */
-    HelloClock &getClockByType(IAVMediaType mediaType);
+    HelloClock &getClockByType(const IAVMediaType &mediaType);
 
     HelloClock &getMasterClock();
 

@@ -27,11 +27,6 @@ std::string ScaleTypePipeline::getFragmentFuncName()
     return "textureFragmentShader";
 }
 
-void ScaleTypePipeline::setTexture(const std::vector<id<MTLTexture>> &textures)
-{
-    this->texture = textures[0];
-}
-
 bool ScaleTypePipeline::draw(float projectMat[4*4])
 {
     // 下面的条件缺一不可

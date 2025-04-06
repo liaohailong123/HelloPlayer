@@ -19,7 +19,7 @@
 #include "entity/MediaInfo.hpp"
 #include "HelloPlayerError.hpp"
 // 音视频解码数据包，控制在一定范围内，防止内存爆炸
-#define AudioFrameMaxCount (5)
+#define AudioFrameMaxCount (20)
 #define VideoFrameMaxCount (5)
 
 // 回调相关
@@ -63,7 +63,7 @@ public:
 
     void setConfig(PlayConfig config);
 
-    PlayConfig getConfig();
+    const PlayConfig &getConfig();
 
     void setDataSource(const char *uri);
 

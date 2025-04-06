@@ -10,7 +10,7 @@
 /**
  * create by liaohailong
  * 2024/6/15 12:47
- * desc: 渲染 sampler OES 纹理，RGBA
+ * desc: 渲染 sampler2d 纹理，RGBA
  */
 class Sampler2DProgram : public IGLProgram
 {
@@ -29,7 +29,9 @@ public:
 
     void setMirror(bool hMirror, bool vMirror) override;
 
-    void draw(int width, int height, float projectMat[16]) override;
+    void draw(int width, int height, float projectMat[16]) override final;
+
+    virtual void onDraw(int width, int height, float projectMat[16]);
 
 protected:
     /**
@@ -37,33 +39,27 @@ protected:
      */
     virtual GLenum getTextureType();
 
-private: // GLSL变量
+protected: // GLSL变量
+    
+    float sVertices[20] = {
+            // positions         // texture coords
+            -1.0f, -1.0f, 0.0f,     0.0f, 1.0f,
+             1.0f, -1.0f, 0.0f,     1.0f, 1.0f,
+            -1.0f,  1.0f, 0.0f,     0.0f, 0.0f,
+             1.0f,  1.0f, 0.0f,     1.0f, 0.0f,
+    };
+    /**
+     * 顶点数据buffer
+     */
+    GLuint vao, vbo;
+    
     uniform mvpM;
     attribute position;
     attribute coordinate;
 
-    uniform texture; // samplerExternalOES
+    uniform texture; // sampler2d
     uniform hMirror;
     uniform vMirror;
-
-private: // 传入着色器的变量
-    float vertexPos[18] = {
-            -1.0f, -1.0f, 0.0f,
-            1.0f, -1.0f, 0.0f,
-            1.0f, 1.0f, 0.0f,
-            1.0f, 1.0f, 0.0f,
-            -1.0f, 1.0f, 0.0f,
-            -1.0f, -1.0f, 0.0f
-    };
-    // Android系统加载纹理会倒置画面，这里的纹理坐标点做了兼容处理
-    float texturePos[12] = {
-            0.0f, 1.0f,
-            1.0f, 1.0f,
-            1.0f, 0.0f,
-            1.0f, 0.0f,
-            0.0f, 0.0f,
-            0.0f, 1.0f
-    };
 
     /**
      * 纹理id

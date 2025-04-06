@@ -15,7 +15,7 @@ HelloAVDecoderFFmpeg::~HelloAVDecoderFFmpeg()
     logger.i("HelloAVDecoderFFmpeg::~HelloAVDecoderFFmpeg(%p)", this);
 }
 
-bool HelloAVDecoderFFmpeg::prepare(AVStream *_stream, PlayConfig _config)
+bool HelloAVDecoderFFmpeg::prepare(AVStream *_stream, const PlayConfig &_config)
 {
     this->stream = _stream;
     this->config = _config;
@@ -101,6 +101,7 @@ bool HelloAVDecoderFFmpeg::prepare(AVStream *_stream, PlayConfig _config)
     ret = avcodec_parameters_to_context(codec_ctx, stream->codecpar);
     if (ret < 0)
     {
+        release();
         logger.i("Failed to copy %s codec parameters to decoder context",
                  av_get_media_type_string(stream->codecpar->codec_type));
         return false;
@@ -122,15 +123,16 @@ bool HelloAVDecoderFFmpeg::prepare(AVStream *_stream, PlayConfig _config)
     }
 #endif
 
-    
+
     ret = avcodec_open2(codec_ctx, codec, nullptr);
     if (ret < 0)
     {
+        release();
         FFUtil::av_print_error(logger, ret, "avcodec_open2 error");
         return false;
     }
-    
-    
+
+
     // 设置pkt_timebase
     codec_ctx->pkt_timebase = stream->time_base;
     codec_ctx->codec_id = codec->id;
@@ -192,83 +194,78 @@ std::shared_ptr<VideoProperties> HelloAVDecoderFFmpeg::getVideoProperties()
  */
 int HelloAVDecoderFFmpeg::sendPacket(std::shared_ptr<IAVPacket> packet)
 {
-
-    if (codec_ctx != nullptr)
+    if (!codec_ctx)
     {
-        int ret = avcodec_send_packet(codec_ctx, packet->packet);
-        if (ret < 0)
-        {
-            if (IAVMediaType::VIDEO == packet->type)
-            {
-                FFUtil::av_print_error(logger, ret, "avcodec_send_packet[video] error");
-            } else if(IAVMediaType::AUDIO == packet->type)
-            {
-                FFUtil::av_print_error(logger, ret, "avcodec_send_packet[audio] error");
-            }
-            return true; // 这里应该是不会存在 EAGAIN 的情况，因为都是send一次，receive多次
+        return AVERROR_DECODER_NOT_FOUND;
+    }
+    const char *desc = packet->getMediaTypeDesc();
+
+    int sendRet = avcodec_send_packet(codec_ctx, packet->packet);
+    if (sendRet < 0)
+    {
+        if (IAVMediaType::VIDEO == packet->type) {
+            FFUtil::av_print_error(logger, sendRet, "avcodec_send_packet[video] error");
+        } else if (IAVMediaType::AUDIO == packet->type) {
+            FFUtil::av_print_error(logger, sendRet, "avcodec_send_packet[audio] error");
+        }
+        return sendRet; // 这里应该是不会存在 EAGAIN 的情况，因为都是send一次，receive多次
+    }
+
+    AVFrame *frame = av_frame_alloc();
+    AVFrame *sw_frame = av_frame_alloc();
+    AVFrame *tmp_frame = nullptr;
+
+    int ret = 0;
+    while (ret >= 0) {
+        // 注释：
+        // function will always call av_frame_unref(frame) before doing anything else.
+        ret = avcodec_receive_frame(codec_ctx, frame);
+
+        if (ret == AVERROR(EAGAIN)) {
+            // 视频：可能是纯粹没解完,也可能是遇到了 B 帧，然后需要继续推入一个P帧才能进行解码
+            // 音频：可能真的是解码完了，没有编码数据需要解了，需要继续送
+//            logger.i("%s avcodec_receive_frame[EAGAIN]", desc);
+            goto end;
+        } else if (ret == AVERROR_EOF) {
+            logger.i("%s avcodec_receive_frame[AVERROR_EOF]", desc);
+            goto end;
+        } else if (ret == AVERROR_DECODER_NOT_FOUND) {
+            logger.i("%s avcodec_receive_frame[AVERROR_DECODER_NOT_FOUND]", desc);
+            goto end;
         }
 
-        AVFrame *frame = av_frame_alloc();
-        AVFrame *sw_frame = av_frame_alloc();
-        AVFrame *tmp_frame = nullptr;
-
-        while (ret >= 0)
+        // 回调外部
+        if (callback)
         {
-            // 注释：
-            // function will always call av_frame_unref(frame) before doing anything else.
-            ret = avcodec_receive_frame(codec_ctx, frame);
-
-            if (ret == AVERROR(EAGAIN))
-            {
-                // 视频：可能是遇到了 B 帧，然后需要继续推入一个P帧才能进行解码
-                // 音频：可能真的是解码完了，没有编码数据需要解了，需要继续送
-                logger.i("avcodec_receive_frame[EAGAIN]");
-                goto end;
-            } else if (ret == AVERROR_EOF)
-            {
-                logger.i("avcodec_receive_frame[AVERROR_EOF]");
-                goto end;
-            } else if (ret == AVERROR_DECODER_NOT_FOUND)
-            {
-                logger.i("avcodec_receive_frame[AVERROR_DECODER_NOT_FOUND]");
-                goto end;
-            }
-
-            // 回调外部
-            if (callback)
-            {
-                if (frame->format == hw_pix_fmt) {
+            if (frame->format == hw_pix_fmt) {
 //                    int64_t startMs = TimeUtil::getCurrentTimeMs();
-                    // retrieve data from GPU to CPU
-                    ret = av_hwframe_transfer_data(sw_frame, frame, 0);
-                    if (ret < 0) {
-                        logger.i("Error transferring the data to system memory");
-                        goto end;
-                    }
-                    ret = av_frame_copy_props(sw_frame, frame);
-                    if (ret < 0) {
-                        logger.i("Error copy metadata fields");
-                        goto end;
-                    }
-                    // iPad 1920*1080 1~2ms
+                // retrieve data from GPU to CPU
+                ret = av_hwframe_transfer_data(sw_frame, frame, 0);
+                if (ret < 0) {
+                    logger.i("%s Error transferring the data to system memory", desc);
+                    goto end;
+                }
+                ret = av_frame_copy_props(sw_frame, frame);
+                if (ret < 0) {
+                    logger.i("%s Error copy metadata fields", desc);
+                    goto end;
+                }
+                // iPad 1920*1080 1~2ms
 //                    int64_t costMs = TimeUtil::getCurrentTimeMs() - startMs;
 //                    logger.i("copy buffer from GPU to CPU cost[%d]ms", costMs);
-                    tmp_frame = sw_frame;
-                } else
-                {
-                    tmp_frame = frame;
-                }
-                std::shared_ptr<IAVFrame> output = std::make_shared<IAVFrame>();
-                output->move(tmp_frame);
-                callback(output, userdata);
+                tmp_frame = sw_frame;
+            } else {
+                tmp_frame = frame;
             }
+            std::shared_ptr<IAVFrame> output = std::make_shared<IAVFrame>();
+            output->move(tmp_frame);
+            callback(output, userdata);
         }
-        end:
-        av_frame_free(&frame);
-        av_frame_free(&sw_frame);
-        return ret;
     }
-    return AVERROR_DECODER_NOT_FOUND;
+    end:
+    av_frame_free(&frame);
+    av_frame_free(&sw_frame);
+    return sendRet;
 }
 
 /**
@@ -284,11 +281,15 @@ void HelloAVDecoderFFmpeg::release()
         avcodec_free_context(&codec_ctx);
         codec_ctx = nullptr;
     }
+    if (hw_device_ctx) {
+        av_buffer_unref(&hw_device_ctx);
+        hw_device_ctx = nullptr;
+    }
 }
 
 AVPixelFormat HelloAVDecoderFFmpeg::find_hw_pix_fmt(const AVCodec *decoder)
 {
-    
+
     enum AVHWDeviceType type = AV_HWDEVICE_TYPE_NONE;
     while((type = av_hwdevice_iterate_types(type)) != AV_HWDEVICE_TYPE_NONE)
     {
@@ -310,8 +311,8 @@ AVPixelFormat HelloAVDecoderFFmpeg::find_hw_pix_fmt(const AVCodec *decoder)
             break;
         }
     }
-    
-    
+
+
     return hw_pix_fmt;
 }
 
@@ -331,12 +332,12 @@ int HelloAVDecoderFFmpeg::hw_decoder_init(AVCodecContext *ctx, const enum AVHWDe
 {
     HelloAVDecoderFFmpeg *native = (HelloAVDecoderFFmpeg *)ctx->opaque;
     int err = 0;
-    
+
     if ((err = av_hwdevice_ctx_create(&native->hw_device_ctx,type,nullptr,nullptr,0)) < 0)
     {
         return err;
     }
-    
+
     ctx->hw_device_ctx = av_buffer_ref(native->hw_device_ctx);
     return err;
 }

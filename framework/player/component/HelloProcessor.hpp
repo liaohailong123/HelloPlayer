@@ -69,7 +69,7 @@ public:
         this->callbackCtx.userdata = userdata;
     }
 
-    void pushInputData(std::shared_ptr<Input> data, bool frontOfQueue = false)
+    void pushInputData(const std::shared_ptr<Input> &data, bool frontOfQueue = false)
     {
         std::shared_ptr<InputDataCtx> ctx = std::make_shared<InputDataCtx>();
         ctx->data = data;

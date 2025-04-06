@@ -18,7 +18,7 @@ class HelloVideoTexture : public TextureData
 public:
     explicit HelloVideoTexture(std::shared_ptr<HelloVideoFrame> frame);
 
-    ~HelloVideoTexture();
+    ~HelloVideoTexture() override;
 
     uint8_t **getData() override;
 

@@ -21,8 +21,6 @@ public:
     
     std::string getFragmentFuncName() override;
     
-    void setTexture(const std::vector<id<MTLTexture>> &textures) override;
-    
     bool draw(float projectMat[4*4]) override;
     
 private:
@@ -39,9 +37,6 @@ private:
     
     // 矩阵 + 镜像
     AAPLObjectParams sObjParams;
-    
-    // 渲染纹理 source
-    id<MTLTexture> texture;
 };
 
 

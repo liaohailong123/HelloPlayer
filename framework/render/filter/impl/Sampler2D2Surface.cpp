@@ -21,18 +21,27 @@ Sampler2D2Surface::~Sampler2D2Surface() {
 void Sampler2D2Surface::onProcess(std::shared_ptr<GLFilterPacket> packet) {
     if (!context)return;
 
+    int64_t startUs = TimeUtil::getCurrentTimeUs();
     bool ret = context->renderStart(packet->key); // 清空缓冲区内容
+    int64_t costUs = TimeUtil::getCurrentTimeUs() - startUs;
+    logger.i("onProcess context->renderStart cost[%ld]us", costUs);
     if (!ret) return;
 
 
+    startUs = TimeUtil::getCurrentTimeUs();
     program->begin();
     program->setTexture(&packet->texture, 1);
     program->draw(packet->width, packet->height, glm::value_ptr(packet->prjMat4)); // 绘制
     program->end(); // 着色器结束使用
+    costUs = TimeUtil::getCurrentTimeUs() - startUs;
+    logger.i("onProcess program->draw cost[%ld]us", costUs);
 
 
+    startUs = TimeUtil::getCurrentTimeUs();
     auto now = std::chrono::system_clock::now();
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
     int64_t ptsUs = ms.count() * 1000L;
     context->renderEnd(packet->key, ptsUs); // 交换buffer到surface上
+    costUs = TimeUtil::getCurrentTimeUs() - startUs;
+    logger.i("onProcess context->renderEnd cost[%ld]us", costUs);
 }

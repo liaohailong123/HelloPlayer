@@ -35,7 +35,7 @@ public:
 
     ~HelloAVDecoderFFmpeg() override;
 
-    bool prepare(AVStream *stream, PlayConfig config) override;
+    bool prepare(AVStream *stream, const PlayConfig &config) override;
 
     /**
      * 清空GOP中的所有参考序列帧
@@ -47,7 +47,7 @@ public:
     std::shared_ptr<VideoProperties> getVideoProperties() override;
 
     /**
-     * @param pkt 编码数据
+     * @param packet 编码数据
      * @return 参考 avcodec_send_packet 注解
      */
     int sendPacket(std::shared_ptr<IAVPacket> packet) override;

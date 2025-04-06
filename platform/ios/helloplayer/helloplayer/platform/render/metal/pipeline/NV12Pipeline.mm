@@ -53,10 +53,10 @@ void NV12Pipeline::setTextureData(const std::shared_ptr<MTLTextureData> &image)
 
     
     if (!textureY) {
-        textureY = PipelineUtil::genrateTexure2D(ctx, yWidth, yHeight, MTLPixelFormatR8Unorm);
+        textureY = PipelineUtil::generateTexture2D(ctx, yWidth, yHeight, MTLPixelFormatR8Unorm);
     }
     if (!textureUV) {
-        textureUV = PipelineUtil::genrateTexure2D(ctx, uvWidth, uvHeight, MTLPixelFormatRG8Unorm);
+        textureUV = PipelineUtil::generateTexture2D(ctx, uvWidth, uvHeight, MTLPixelFormatRG8Unorm);
     }
 
     

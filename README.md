@@ -159,4 +159,20 @@
 ![1](https://gitee.com/liaohailong190/hello-player/raw/master/assets/HelloPlayer.svg)
 
 
+## 性能开销 2025/4/6 22:11
+
+![1](https://gitee.com/liaohailong190/hello-player/raw/master/assets/profile-iOS.png)
+	
+	Android和鸿蒙
+	CPU开销 
+		软解720*1280  20%~25%
+		硬解1080*1440 25%~30%
+		4K分辨率		 25%~30%
+	内存开销
+		软解720*1280  200MB~220MB
+		硬解1080*1440 200MB~220MB
+		4K分辨率		 480MB~500MB
+
+
+
 

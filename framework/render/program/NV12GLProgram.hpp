@@ -5,7 +5,7 @@
 #ifndef HELLOPLAYER_NV12GLPROGRAM_HPP
 #define HELLOPLAYER_NV12GLPROGRAM_HPP
 
-#include "IGLProgram.hpp"
+#include "Sampler2DProgram.hpp"
 
 extern "C"
 {
@@ -19,14 +19,12 @@ extern "C"
  * Time: 10:57
  * Description: 渲染 sampler 2D 纹理，NV12
  **/
-class NV12GLProgram : public IGLProgram
+class NV12GLProgram : public Sampler2DProgram
 {
 public:
     explicit NV12GLProgram();
 
     ~NV12GLProgram() override;
-
-    std::string getVertexSource() override;
 
     std::string getFragmentSource() override;
 
@@ -39,7 +37,7 @@ public:
 
     void setMirror(bool hMirror, bool vMirror) override;
 
-    void draw(int width, int height, float projectMat[16]) override;
+    void onDraw(int width, int height, float projectMat[16]) override;
 
 protected:
     void bindYTexture(GLuint texture, int width, int height, GLint lineSize, const void *pixels);
@@ -56,23 +54,6 @@ private: // GLSL变量
 
 
 private: // 传入着色器的变量
-    float vertexPos[18] = {
-            -1.0f, -1.0f, 0.0f,
-            1.0f, -1.0f, 0.0f,
-            1.0f, 1.0f, 0.0f,
-            1.0f, 1.0f, 0.0f,
-            -1.0f, 1.0f, 0.0f,
-            -1.0f, -1.0f, 0.0f
-    };
-    float texturePos[12] = {
-            0.0f, 1.0f,
-            1.0f, 1.0f,
-            1.0f, 0.0f,
-            1.0f, 0.0f,
-            0.0f, 0.0f,
-            0.0f, 1.0f
-    };
-
     /**
      * sampler2d纹理id
      */

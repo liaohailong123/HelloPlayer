@@ -63,8 +63,6 @@ private:
         }
         ~AudioInfo()
         {
-            const char* c_name = name.c_str();
-
             if(filterCtx)
             {
                 avfilter_free(filterCtx);
